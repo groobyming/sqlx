@@ -4,6 +4,7 @@ use crate::executor::Executor;
 use crate::{MySqlConnectOptions, MySqlConnection};
 use futures_core::future::BoxFuture;
 use log::LevelFilter;
+use sqlx_core::row::Row;
 use sqlx_core::Url;
 use std::time::Duration;
 
@@ -60,10 +61,15 @@ impl ConnectOptions for MySqlConnectOptions {
 
             let mut options = Vec::new();
             if !sql_mode.is_empty() {
+                let sql_mode = conn
+                    .fetch_one(&*format!(
+                        r#"SELECT CONCAT(@@sql_mode, ',{}');"#,
+                        sql_mode.join(",")
+                    ))
+                    .await?;
+                let sql_mode = sql_mode.get::<Option<String>, _>(0).unwrap_or_default();
                 options.push(format!(
-                    r#"sql_mode=(SELECT CONCAT(@@sql_mode, ',{}'))"#,
-                    sql_mode.join(",")
-                ));
+                    r#"sql_mode='{}'"#, sql_mode));
             }
             if let Some(timezone) = &self.timezone {
                 options.push(format!(r#"time_zone='{}'"#, timezone));
