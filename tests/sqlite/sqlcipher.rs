@@ -2,9 +2,9 @@
 
 use std::str::FromStr;
 
-use sqlx::sqlite::SqliteQueryResult;
-use sqlx::{query, Connection, SqliteConnection};
-use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
+use bk_sqlx::sqlite::SqliteQueryResult;
+use bk_sqlx::{query, Connection, SqliteConnection};
+use bk_sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
 use tempfile::TempDir;
 
 async fn new_db_url() -> anyhow::Result<(String, TempDir)> {
@@ -45,7 +45,7 @@ async fn fill_db(conn: &mut SqliteConnection) -> anyhow::Result<SqliteQueryResul
     .map_err(|e| e.into())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_encrypts() -> anyhow::Result<()> {
     let (url, _dir) = new_db_url().await?;
 
@@ -70,7 +70,7 @@ async fn it_encrypts() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_store_and_read_encrypted_data() -> anyhow::Result<()> {
     let (url, _dir) = new_db_url().await?;
 
@@ -99,7 +99,7 @@ async fn it_can_store_and_read_encrypted_data() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_fails_if_password_is_incorrect() -> anyhow::Result<()> {
     let (url, _dir) = new_db_url().await?;
 
@@ -127,7 +127,7 @@ async fn it_fails_if_password_is_incorrect() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_honors_order_of_encryption_pragmas() -> anyhow::Result<()> {
     let (url, _dir) = new_db_url().await?;
 
@@ -136,12 +136,12 @@ async fn it_honors_order_of_encryption_pragmas() -> anyhow::Result<()> {
     // executed first and allow to establish valid connection
     let mut conn = SqliteConnectOptions::from_str(&url)?
         .pragma("cipher_kdf_algorithm", "PBKDF2_HMAC_SHA1")
-        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+        .journal_mode(bk_sqlx::sqlite::SqliteJournalMode::Wal)
         .pragma("cipher_page_size", "1024")
         .pragma("key", "the_password")
         .foreign_keys(true)
         .pragma("kdf_iter", "64000")
-        .auto_vacuum(sqlx::sqlite::SqliteAutoVacuum::Incremental)
+        .auto_vacuum(bk_sqlx::sqlite::SqliteAutoVacuum::Incremental)
         .pragma("cipher_hmac_algorithm", "HMAC_SHA1")
         .create_if_missing(true)
         .connect()
@@ -170,7 +170,7 @@ async fn it_honors_order_of_encryption_pragmas() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_allows_to_rekey_the_db() -> anyhow::Result<()> {
     let (url, _dir) = new_db_url().await?;
 

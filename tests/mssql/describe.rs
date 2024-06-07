@@ -1,8 +1,8 @@
-use sqlx::mssql::Mssql;
-use sqlx::{Column, Executor, TypeInfo};
-use sqlx_test::new;
+use bk_sqlx::mssql::Mssql;
+use bk_sqlx::{Column, Executor, TypeInfo};
+use bk_sqlx_test::new;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_simple() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
@@ -26,7 +26,7 @@ async fn it_describes_simple() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_with_params() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 

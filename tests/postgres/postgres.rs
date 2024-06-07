@@ -1,20 +1,20 @@
 use futures::{StreamExt, TryStreamExt};
-use sqlx::postgres::types::Oid;
-use sqlx::postgres::{
+use bk_sqlx::postgres::types::Oid;
+use bk_sqlx::postgres::{
     PgAdvisoryLock, PgConnectOptions, PgConnection, PgDatabaseError, PgErrorPosition, PgListener,
     PgPoolOptions, PgRow, PgSeverity, Postgres,
 };
-use sqlx::{Column, Connection, Executor, Row, Statement, TypeInfo};
-use sqlx_test::{new, pool, setup_if_needed};
+use bk_sqlx::{Column, Connection, Executor, Row, Statement, TypeInfo};
+use bk_sqlx_test::{new, pool, setup_if_needed};
 use std::env;
 use std::sync::Arc;
 use std::time::Duration;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_connects() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let value = sqlx::query("select 1 + 1")
+    let value = bk_sqlx::query("select 1 + 1")
         .try_map(|row: PgRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
         .await?;
@@ -24,19 +24,19 @@ async fn it_connects() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_select_void() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
     // pg_notify just happens to be a function that returns void
-    let _: () = sqlx::query_scalar("select pg_notify('chan', 'message');")
+    let _: () = bk_sqlx::query_scalar("select pg_notify('chan', 'message');")
         .fetch_one(&mut conn)
         .await?;
 
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_pings() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -45,17 +45,17 @@ async fn it_pings() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_pings_after_suspended_query() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    sqlx::raw_sql("create temporary table processed_row(val int4 primary key)")
+    bk_sqlx::raw_sql("create temporary table processed_row(val int4 primary key)")
         .execute(&mut conn)
         .await?;
 
     // This query wants to return 50 rows but we only read the first one.
     // This will return a `SuspendedPortal` that the driver currently ignores.
-    let _: i32 = sqlx::query_scalar(
+    let _: i32 = bk_sqlx::query_scalar(
         r#"
             insert into processed_row(val)
             select * from generate_series(1, 50)
@@ -70,7 +70,7 @@ async fn it_pings_after_suspended_query() -> anyhow::Result<()> {
     conn.ping().await?;
 
     // Make sure that all the values got inserted even though we only read the first one back.
-    let count: i64 = sqlx::query_scalar("select count(*) from processed_row")
+    let count: i64 = bk_sqlx::query_scalar("select count(*) from processed_row")
         .fetch_one(&mut conn)
         .await?;
 
@@ -79,11 +79,11 @@ async fn it_pings_after_suspended_query() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_maths() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let value = sqlx::query("select 1 + $1::int")
+    let value = bk_sqlx::query("select 1 + $1::int")
         .bind(5_i32)
         .try_map(|row: PgRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
@@ -94,11 +94,11 @@ async fn it_maths() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_inspect_errors() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let res: Result<_, sqlx::Error> = sqlx::query("select f").execute(&mut conn).await;
+    let res: Result<_, bk_sqlx::Error> = bk_sqlx::query("select f").execute(&mut conn).await;
     let err = res.unwrap_err();
 
     // can also do [as_database_error] or use `match ..`
@@ -120,12 +120,12 @@ async fn it_can_inspect_errors() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_inspect_constraint_errors() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let res: Result<_, sqlx::Error> =
-        sqlx::query("INSERT INTO products VALUES (1, 'Product 1', 0);")
+    let res: Result<_, bk_sqlx::Error> =
+        bk_sqlx::query("INSERT INTO products VALUES (1, 'Product 1', 0);")
             .execute(&mut conn)
             .await;
     let err = res.unwrap_err();
@@ -155,7 +155,7 @@ async fn it_can_inspect_constraint_errors() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_executes() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -168,7 +168,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);
         .await?;
 
     for index in 1..=10_i32 {
-        let done = sqlx::query("INSERT INTO users (id) VALUES ($1)")
+        let done = bk_sqlx::query("INSERT INTO users (id) VALUES ($1)")
             .bind(index)
             .execute(&mut conn)
             .await?;
@@ -176,7 +176,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);
         assert_eq!(done.rows_affected(), 1);
     }
 
-    let sum: i32 = sqlx::query("SELECT id FROM users")
+    let sum: i32 = bk_sqlx::query("SELECT id FROM users")
         .try_map(|row: PgRow| row.try_get::<i32, _>(0))
         .fetch(&mut conn)
         .try_fold(0_i32, |acc, x| async move { Ok(acc + x) })
@@ -187,11 +187,11 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_nest_map() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let res = sqlx::query("SELECT 5")
+    let res = bk_sqlx::query("SELECT 5")
         .map(|row: PgRow| row.get(0))
         .map(|int: i32| int.to_string())
         .fetch_one(&mut conn)
@@ -203,7 +203,7 @@ async fn it_can_nest_map() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "json")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_and_inserts_json_and_jsonb() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -218,7 +218,7 @@ CREATE TEMPORARY TABLE json_stuff (obj json, obj2 jsonb);
     let query = "INSERT INTO json_stuff (obj, obj2) VALUES ($1, $2)";
     let _ = conn.describe(query).await?;
 
-    let done = sqlx::query(query)
+    let done = bk_sqlx::query(query)
         .bind(serde_json::json!({ "a": "a" }))
         .bind(serde_json::json!({ "a": "a" }))
         .execute(&mut conn)
@@ -229,7 +229,7 @@ CREATE TEMPORARY TABLE json_stuff (obj json, obj2 jsonb);
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_works_with_cache_disabled() -> anyhow::Result<()> {
     setup_if_needed();
 
@@ -240,7 +240,7 @@ async fn it_works_with_cache_disabled() -> anyhow::Result<()> {
     let mut conn = PgConnection::connect(url.as_ref()).await?;
 
     for index in 1..=10_i32 {
-        let _ = sqlx::query("SELECT $1")
+        let _ = bk_sqlx::query("SELECT $1")
             .bind(index)
             .execute(&mut conn)
             .await?;
@@ -249,9 +249,9 @@ async fn it_works_with_cache_disabled() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_executes_with_pool() -> anyhow::Result<()> {
-    let pool = sqlx_test::pool::<Postgres>().await?;
+    let pool = bk_sqlx_test::pool::<Postgres>().await?;
 
     let rows = pool.fetch_all("SELECT 1; SElECT 2").await?;
 
@@ -260,12 +260,12 @@ async fn it_executes_with_pool() -> anyhow::Result<()> {
     Ok(())
 }
 
-// https://github.com/launchbadge/sqlx/issues/104
-#[sqlx_macros::test]
+// https://github.com/launchbadge/bk_sqlx/issues/104
+#[bk_sqlx_macros::test]
 async fn it_can_return_interleaved_nulls_issue_104() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let tuple = sqlx::query("SELECT NULL, 10::INT, NULL, 20::INT, NULL, 40::INT, NULL, 80::INT")
+    let tuple = bk_sqlx::query("SELECT NULL, 10::INT, NULL, 20::INT, NULL, 40::INT, NULL, 80::INT")
         .map(|row: PgRow| {
             (
                 row.get::<Option<i32>, _>(0),
@@ -293,7 +293,7 @@ async fn it_can_return_interleaved_nulls_issue_104() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_fail_and_recover() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -314,9 +314,9 @@ async fn it_can_fail_and_recover() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_fail_and_recover_with_pool() -> anyhow::Result<()> {
-    let pool = sqlx_test::pool::<Postgres>().await?;
+    let pool = bk_sqlx_test::pool::<Postgres>().await?;
 
     for i in 0..10 {
         // make a query that will fail
@@ -335,45 +335,45 @@ async fn it_can_fail_and_recover_with_pool() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_query_scalar() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let scalar: i32 = sqlx::query_scalar("SELECT 42").fetch_one(&mut conn).await?;
+    let scalar: i32 = bk_sqlx::query_scalar("SELECT 42").fetch_one(&mut conn).await?;
     assert_eq!(scalar, 42);
 
-    let scalar: Option<i32> = sqlx::query_scalar("SELECT 42").fetch_one(&mut conn).await?;
+    let scalar: Option<i32> = bk_sqlx::query_scalar("SELECT 42").fetch_one(&mut conn).await?;
     assert_eq!(scalar, Some(42));
 
-    let scalar: Option<i32> = sqlx::query_scalar("SELECT NULL")
+    let scalar: Option<i32> = bk_sqlx::query_scalar("SELECT NULL")
         .fetch_one(&mut conn)
         .await?;
     assert_eq!(scalar, None);
 
-    let scalar: Option<i64> = sqlx::query_scalar("SELECT 42::bigint")
+    let scalar: Option<i64> = bk_sqlx::query_scalar("SELECT 42::bigint")
         .fetch_optional(&mut conn)
         .await?;
     assert_eq!(scalar, Some(42));
 
-    let scalar: Option<i16> = sqlx::query_scalar("").fetch_optional(&mut conn).await?;
+    let scalar: Option<i16> = bk_sqlx::query_scalar("").fetch_optional(&mut conn).await?;
     assert_eq!(scalar, None);
 
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 /// This is separate from `it_can_query_scalar` because while implementing it I ran into a
 /// bug which that prevented `Vec<i32>` from compiling but allowed Vec<Option<i32>>.
 async fn it_can_query_all_scalar() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    let scalar: Vec<i32> = sqlx::query_scalar("SELECT $1")
+    let scalar: Vec<i32> = bk_sqlx::query_scalar("SELECT $1")
         .bind(42)
         .fetch_all(&mut conn)
         .await?;
     assert_eq!(scalar, vec![42]);
 
-    let scalar: Vec<Option<i32>> = sqlx::query_scalar("SELECT $1 UNION ALL SELECT NULL")
+    let scalar: Vec<Option<i32>> = bk_sqlx::query_scalar("SELECT $1 UNION ALL SELECT NULL")
         .bind(42)
         .fetch_all(&mut conn)
         .await?;
@@ -382,27 +382,27 @@ async fn it_can_query_all_scalar() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    conn.execute("CREATE TABLE IF NOT EXISTS _sqlx_users_1922 (id INTEGER PRIMARY KEY)")
+    conn.execute("CREATE TABLE IF NOT EXISTS _bk_sqlx_users_1922 (id INTEGER PRIMARY KEY)")
         .await?;
 
-    conn.execute("TRUNCATE _sqlx_users_1922").await?;
+    conn.execute("TRUNCATE _bk_sqlx_users_1922").await?;
 
     // begin .. rollback
 
     let mut tx = conn.begin().await?;
 
-    sqlx::query("INSERT INTO _sqlx_users_1922 (id) VALUES ($1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_1922 (id) VALUES ($1)")
         .bind(10_i32)
         .execute(&mut *tx)
         .await?;
 
     tx.rollback().await?;
 
-    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_1922")
+    let (count,): (i64,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_1922")
         .fetch_one(&mut conn)
         .await?;
 
@@ -412,14 +412,14 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
 
     let mut tx = conn.begin().await?;
 
-    sqlx::query("INSERT INTO _sqlx_users_1922 (id) VALUES ($1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_1922 (id) VALUES ($1)")
         .bind(10_i32)
         .execute(&mut *tx)
         .await?;
 
     tx.commit().await?;
 
-    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_1922")
+    let (count,): (i64,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_1922")
         .fetch_one(&mut conn)
         .await?;
 
@@ -430,7 +430,7 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     {
         let mut tx = conn.begin().await?;
 
-        sqlx::query("INSERT INTO _sqlx_users_1922 (id) VALUES ($1)")
+        bk_sqlx::query("INSERT INTO _bk_sqlx_users_1922 (id) VALUES ($1)")
             .bind(20_i32)
             .execute(&mut *tx)
             .await?;
@@ -438,7 +438,7 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
 
     conn = new::<Postgres>().await?;
 
-    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_1922")
+    let (count,): (i64,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_1922")
         .fetch_one(&mut conn)
         .await?;
 
@@ -447,20 +447,20 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    conn.execute("CREATE TABLE IF NOT EXISTS _sqlx_users_2523 (id INTEGER PRIMARY KEY)")
+    conn.execute("CREATE TABLE IF NOT EXISTS _bk_sqlx_users_2523 (id INTEGER PRIMARY KEY)")
         .await?;
 
-    conn.execute("TRUNCATE _sqlx_users_2523").await?;
+    conn.execute("TRUNCATE _bk_sqlx_users_2523").await?;
 
     // begin
     let mut tx = conn.begin().await?; // transaction
 
     // insert a user
-    sqlx::query("INSERT INTO _sqlx_users_2523 (id) VALUES ($1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_2523 (id) VALUES ($1)")
         .bind(50_i32)
         .execute(&mut *tx)
         .await?;
@@ -469,7 +469,7 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     let mut tx2 = tx.begin().await?; // savepoint
 
     // insert another user
-    sqlx::query("INSERT INTO _sqlx_users_2523 (id) VALUES ($1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_2523 (id) VALUES ($1)")
         .bind(10_i32)
         .execute(&mut *tx2)
         .await?;
@@ -478,7 +478,7 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     tx2.rollback().await?; // roll that one back
 
     // did we really?
-    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_2523")
+    let (count,): (i64,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_2523")
         .fetch_one(&mut *tx)
         .await?;
 
@@ -488,7 +488,7 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     tx.commit().await?;
 
     // did we really?
-    let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_2523")
+    let (count,): (i64,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_2523")
         .fetch_one(&mut conn)
         .await?;
 
@@ -497,14 +497,14 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_drop_multiple_transactions() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    conn.execute("CREATE TABLE IF NOT EXISTS _sqlx_users_3952 (id INTEGER PRIMARY KEY)")
+    conn.execute("CREATE TABLE IF NOT EXISTS _bk_sqlx_users_3952 (id INTEGER PRIMARY KEY)")
         .await?;
 
-    conn.execute("TRUNCATE _sqlx_users_3952").await?;
+    conn.execute("TRUNCATE _bk_sqlx_users_3952").await?;
 
     // begin .. (drop)
 
@@ -514,13 +514,13 @@ async fn it_can_drop_multiple_transactions() -> anyhow::Result<()> {
             let mut tx = conn.begin().await?;
 
             // do actually something before dropping
-            let _user = sqlx::query("INSERT INTO _sqlx_users_3952 (id) VALUES ($1) RETURNING id")
+            let _user = bk_sqlx::query("INSERT INTO _bk_sqlx_users_3952 (id) VALUES ($1) RETURNING id")
                 .bind(20_i32)
                 .fetch_one(&mut *tx)
                 .await?;
         }
 
-        let (count,): (i64,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_3952")
+        let (count,): (i64,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_3952")
             .fetch_one(&mut conn)
             .await?;
 
@@ -532,7 +532,7 @@ async fn it_can_drop_multiple_transactions() -> anyhow::Result<()> {
 
 // run with `cargo test --features postgres -- --ignored --nocapture pool_smoke_test`
 #[ignore]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn pool_smoke_test() -> anyhow::Result<()> {
     use futures::{future, task::Poll, Future};
 
@@ -548,11 +548,11 @@ async fn pool_smoke_test() -> anyhow::Result<()> {
     // spin up more tasks than connections available, and ensure we don't deadlock
     for i in 0..200 {
         let pool = pool.clone();
-        sqlx_core::rt::spawn(async move {
+        bk_sqlx_core::rt::spawn(async move {
             for j in 0.. {
-                if let Err(e) = sqlx::query("select 1 + 1").execute(&pool).await {
+                if let Err(e) = bk_sqlx::query("select 1 + 1").execute(&pool).await {
                     // normal error at termination of the test
-                    if matches!(e, sqlx::Error::PoolClosed) {
+                    if matches!(e, bk_sqlx::Error::PoolClosed) {
                         eprintln!("pool task {i} exiting normally after {j} iterations");
                     } else {
                         eprintln!("pool task {i} dying due to {e} after {j} iterations");
@@ -561,7 +561,7 @@ async fn pool_smoke_test() -> anyhow::Result<()> {
                 }
 
                 // shouldn't be necessary if the pool is fair
-                // sqlx_core::rt::yield_now().await;
+                // bk_sqlx_core::rt::yield_now().await;
             }
         });
     }
@@ -570,7 +570,7 @@ async fn pool_smoke_test() -> anyhow::Result<()> {
     // of cancellations
     for _ in 0..50 {
         let pool = pool.clone();
-        sqlx_core::rt::spawn(async move {
+        bk_sqlx_core::rt::spawn(async move {
             while !pool.is_closed() {
                 let acquire = pool.acquire();
                 futures::pin_mut!(acquire);
@@ -584,27 +584,27 @@ async fn pool_smoke_test() -> anyhow::Result<()> {
 
                 // this one is necessary since this is a hot loop,
                 // otherwise this task will never be descheduled
-                sqlx_core::rt::yield_now().await;
+                bk_sqlx_core::rt::yield_now().await;
             }
         });
     }
 
     eprintln!("sleeping for 30 seconds");
 
-    sqlx_core::rt::sleep(Duration::from_secs(30)).await;
+    bk_sqlx_core::rt::sleep(Duration::from_secs(30)).await;
 
     // assert_eq!(pool.size(), 10);
 
     eprintln!("closing pool");
 
-    sqlx_core::rt::timeout(Duration::from_secs(30), pool.close()).await?;
+    bk_sqlx_core::rt::timeout(Duration::from_secs(30), pool.close()).await?;
 
     eprintln!("pool closed successfully");
 
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_invalid_query() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -624,7 +624,7 @@ async fn test_invalid_query() -> anyhow::Result<()> {
 ///
 /// This gets flagged as an `EmptyQueryResponse` in Postgres. We
 /// catch this and just return no rows.
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_empty_query() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
     let done = conn.execute("").await?;
@@ -635,7 +635,7 @@ async fn test_empty_query() -> anyhow::Result<()> {
 }
 
 /// Test a simple select expression. This should return the row.
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_select_expression() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -650,22 +650,22 @@ async fn test_select_expression() -> anyhow::Result<()> {
 /// Test that we can interleave reads and writes to the database
 /// in one simple query. Using the `Cursor` API we should be
 /// able to fetch from both queries in sequence.
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_multi_read_write() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
     let mut s = conn.fetch(
         "
-CREATE TABLE IF NOT EXISTS _sqlx_test_postgres_5112 (
+CREATE TABLE IF NOT EXISTS _bk_sqlx_test_postgres_5112 (
     id BIGSERIAL PRIMARY KEY,
     text TEXT NOT NULL
 );
 
 SELECT 'Hello World' as _1;
 
-INSERT INTO _sqlx_test_postgres_5112 (text) VALUES ('this is a test');
+INSERT INTO _bk_sqlx_test_postgres_5112 (text) VALUES ('this is a test');
 
-SELECT id, text FROM _sqlx_test_postgres_5112;
+SELECT id, text FROM _bk_sqlx_test_postgres_5112;
     ",
     );
 
@@ -684,12 +684,12 @@ SELECT id, text FROM _sqlx_test_postgres_5112;
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_caches_statements() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
     for i in 0..2 {
-        let row = sqlx::query("SELECT $1 AS val")
+        let row = bk_sqlx::query("SELECT $1 AS val")
             .bind(Oid(i))
             .persistent(true)
             .fetch_one(&mut conn)
@@ -705,7 +705,7 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     assert_eq!(0, conn.cached_statements_size());
 
     for i in 0..2 {
-        let row = sqlx::query("SELECT $1 AS val")
+        let row = bk_sqlx::query("SELECT $1 AS val")
             .bind(Oid(i))
             .persistent(false)
             .fetch_one(&mut conn)
@@ -721,9 +721,9 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_closes_statement_from_cache_issue_470() -> anyhow::Result<()> {
-    sqlx_test::setup_if_needed();
+    bk_sqlx_test::setup_if_needed();
 
     let mut options: PgConnectOptions = env::var("DATABASE_URL")?.parse().unwrap();
 
@@ -734,7 +734,7 @@ async fn it_closes_statement_from_cache_issue_470() -> anyhow::Result<()> {
     let mut conn = PgConnection::connect_with(&options).await?;
 
     for i in 0..5 {
-        let row = sqlx::query(&*format!("SELECT {i}::int4 AS val"))
+        let row = bk_sqlx::query(&*format!("SELECT {i}::int4 AS val"))
             .fetch_one(&mut conn)
             .await?;
 
@@ -748,16 +748,16 @@ async fn it_closes_statement_from_cache_issue_470() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_sets_application_name() -> anyhow::Result<()> {
-    sqlx_test::setup_if_needed();
+    bk_sqlx_test::setup_if_needed();
 
     let mut options: PgConnectOptions = env::var("DATABASE_URL")?.parse().unwrap();
     options = options.application_name("some-name");
 
     let mut conn = PgConnection::connect_with(&options).await?;
 
-    let row = sqlx::query("select current_setting('application_name') as app_name")
+    let row = bk_sqlx::query("select current_setting('application_name') as app_name")
         .fetch_one(&mut conn)
         .await?;
 
@@ -768,19 +768,19 @@ async fn it_sets_application_name() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_handle_parameter_status_message_issue_484() -> anyhow::Result<()> {
     new::<Postgres>().await?.execute("SET NAMES 'UTF8'").await?;
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_prepare_then_execute() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
     let mut tx = conn.begin().await?;
 
     let tweet_id: i64 =
-        sqlx::query_scalar("INSERT INTO tweet ( text ) VALUES ( 'Hello, World' ) RETURNING id")
+        bk_sqlx::query_scalar("INSERT INTO tweet ( text ) VALUES ( 'Hello, World' ) RETURNING id")
             .fetch_one(&mut *tx)
             .await?;
 
@@ -825,18 +825,18 @@ async fn test_issue_622() -> anyhow::Result<()> {
     for i in 0..3 {
         let pool = pool.clone();
 
-        handles.push(sqlx_core::rt::spawn(async move {
+        handles.push(bk_sqlx_core::rt::spawn(async move {
             {
                 let mut conn = pool.acquire().await.unwrap();
 
-                let _ = sqlx::query("SELECT 1").fetch_one(&mut *conn).await.unwrap();
+                let _ = bk_sqlx::query("SELECT 1").fetch_one(&mut *conn).await.unwrap();
 
                 // conn gets dropped here and should be returned to the pool
             }
 
             // (do some other work here without holding on to a connection)
             // this actually fixes the issue, depending on the timeout used
-            // sqlx_core::rt::sleep(Duration::from_millis(500)).await;
+            // bk_sqlx_core::rt::sleep(Duration::from_millis(500)).await;
 
             {
                 let start = Instant::now();
@@ -858,7 +858,7 @@ async fn test_issue_622() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_describe_outer_join_nullable() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -931,12 +931,12 @@ from (values (null)) vals(val)
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_listener_cleanup() -> anyhow::Result<()> {
-    use sqlx_core::rt::timeout;
+    use bk_sqlx_core::rt::timeout;
 
-    use sqlx::pool::PoolOptions;
-    use sqlx::postgres::PgListener;
+    use bk_sqlx::pool::PoolOptions;
+    use bk_sqlx::postgres::PgListener;
 
     // Create a connection on which to send notifications
     let mut notify_conn = new::<Postgres>().await?;
@@ -992,14 +992,14 @@ async fn test_listener_cleanup() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_pg_listener_allows_pool_to_close() -> anyhow::Result<()> {
     let pool = pool::<Postgres>().await?;
 
     // acquires and holds a connection which would normally prevent the pool from closing
     let mut listener = PgListener::connect_with(&pool).await?;
 
-    sqlx_core::rt::spawn(async move {
+    bk_sqlx_core::rt::spawn(async move {
         listener.recv().await.unwrap();
     });
 
@@ -1009,7 +1009,7 @@ async fn test_pg_listener_allows_pool_to_close() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_supports_domain_types_in_composite_domain_types() -> anyhow::Result<()> {
     // Only supported in Postgres 11+
     let mut conn = new::<Postgres>().await?;
@@ -1038,30 +1038,30 @@ CREATE TABLE heating_bills (
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
     struct MonthId(i16);
 
-    impl sqlx::Type<Postgres> for MonthId {
-        fn type_info() -> sqlx::postgres::PgTypeInfo {
-            sqlx::postgres::PgTypeInfo::with_name("month_id")
+    impl bk_sqlx::Type<Postgres> for MonthId {
+        fn type_info() -> bk_sqlx::postgres::PgTypeInfo {
+            bk_sqlx::postgres::PgTypeInfo::with_name("month_id")
         }
 
-        fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
+        fn compatible(ty: &bk_sqlx::postgres::PgTypeInfo) -> bool {
             *ty == Self::type_info()
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for MonthId {
+    impl<'r> bk_sqlx::Decode<'r, Postgres> for MonthId {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-            Ok(Self(<i16 as sqlx::Decode<Postgres>>::decode(value)?))
+            Ok(Self(<i16 as bk_sqlx::Decode<Postgres>>::decode(value)?))
         }
     }
 
-    impl<'q> sqlx::Encode<'q, Postgres> for MonthId {
+    impl<'q> bk_sqlx::Encode<'q, Postgres> for MonthId {
         fn encode_by_ref(
             &self,
-            buf: &mut sqlx::postgres::PgArgumentBuffer,
-        ) -> sqlx::encode::IsNull {
-            <i16 as sqlx::Encode<Postgres>>::encode(self.0, buf)
+            buf: &mut bk_sqlx::postgres::PgArgumentBuffer,
+        ) -> bk_sqlx::encode::IsNull {
+            <i16 as bk_sqlx::Encode<Postgres>>::encode(self.0, buf)
         }
     }
 
@@ -1071,21 +1071,21 @@ CREATE TABLE heating_bills (
         month: MonthId,
     }
 
-    impl sqlx::Type<Postgres> for WinterYearMonth {
-        fn type_info() -> sqlx::postgres::PgTypeInfo {
-            sqlx::postgres::PgTypeInfo::with_name("winter_year_month")
+    impl bk_sqlx::Type<Postgres> for WinterYearMonth {
+        fn type_info() -> bk_sqlx::postgres::PgTypeInfo {
+            bk_sqlx::postgres::PgTypeInfo::with_name("winter_year_month")
         }
 
-        fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
+        fn compatible(ty: &bk_sqlx::postgres::PgTypeInfo) -> bool {
             *ty == Self::type_info()
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for WinterYearMonth {
+    impl<'r> bk_sqlx::Decode<'r, Postgres> for WinterYearMonth {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-            let mut decoder = sqlx::postgres::types::PgRecordDecoder::new(value)?;
+            let mut decoder = bk_sqlx::postgres::types::PgRecordDecoder::new(value)?;
 
             let year = decoder.try_decode::<i32>()?;
             let month = decoder.try_decode::<MonthId>()?;
@@ -1094,21 +1094,21 @@ CREATE TABLE heating_bills (
         }
     }
 
-    impl<'q> sqlx::Encode<'q, Postgres> for WinterYearMonth {
+    impl<'q> bk_sqlx::Encode<'q, Postgres> for WinterYearMonth {
         fn encode_by_ref(
             &self,
-            buf: &mut sqlx::postgres::PgArgumentBuffer,
-        ) -> sqlx::encode::IsNull {
-            let mut encoder = sqlx::postgres::types::PgRecordEncoder::new(buf);
+            buf: &mut bk_sqlx::postgres::PgArgumentBuffer,
+        ) -> bk_sqlx::encode::IsNull {
+            let mut encoder = bk_sqlx::postgres::types::PgRecordEncoder::new(buf);
             encoder.encode(self.year);
             encoder.encode(self.month);
             encoder.finish();
-            sqlx::encode::IsNull::No
+            bk_sqlx::encode::IsNull::No
         }
     }
     let mut conn = new::<Postgres>().await?;
 
-    let result = sqlx::query("DELETE FROM heating_bills;")
+    let result = bk_sqlx::query("DELETE FROM heating_bills;")
         .execute(&mut conn)
         .await;
 
@@ -1116,7 +1116,7 @@ CREATE TABLE heating_bills (
     assert_eq!(result.rows_affected(), 0);
 
     let result =
-        sqlx::query("INSERT INTO heating_bills(month, cost) VALUES($1::winter_year_month, 100);")
+        bk_sqlx::query("INSERT INTO heating_bills(month, cost) VALUES($1::winter_year_month, 100);")
             .bind(WinterYearMonth {
                 year: 2021,
                 month: MonthId(1),
@@ -1127,7 +1127,7 @@ CREATE TABLE heating_bills (
     let result = result.unwrap();
     assert_eq!(result.rows_affected(), 1);
 
-    let result = sqlx::query("DELETE FROM heating_bills;")
+    let result = bk_sqlx::query("DELETE FROM heating_bills;")
         .execute(&mut conn)
         .await;
 
@@ -1137,7 +1137,7 @@ CREATE TABLE heating_bills (
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_resolves_custom_type_in_array() -> anyhow::Result<()> {
     // Only supported in Postgres 11+
     let mut conn = new::<Postgres>().await?;
@@ -1177,17 +1177,17 @@ VALUES
         race: String,
     }
 
-    impl sqlx::Type<Postgres> for PetNameAndRace {
-        fn type_info() -> sqlx::postgres::PgTypeInfo {
-            sqlx::postgres::PgTypeInfo::with_name("pet_name_and_race")
+    impl bk_sqlx::Type<Postgres> for PetNameAndRace {
+        fn type_info() -> bk_sqlx::postgres::PgTypeInfo {
+            bk_sqlx::postgres::PgTypeInfo::with_name("pet_name_and_race")
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for PetNameAndRace {
+    impl<'r> bk_sqlx::Decode<'r, Postgres> for PetNameAndRace {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-            let mut decoder = sqlx::postgres::types::PgRecordDecoder::new(value)?;
+            let mut decoder = bk_sqlx::postgres::types::PgRecordDecoder::new(value)?;
             let name = decoder.try_decode::<String>()?;
             let race = decoder.try_decode::<String>()?;
             Ok(Self { name, race })
@@ -1197,16 +1197,16 @@ VALUES
     #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
     struct PetNameAndRaceArray(Vec<PetNameAndRace>);
 
-    impl sqlx::Type<Postgres> for PetNameAndRaceArray {
-        fn type_info() -> sqlx::postgres::PgTypeInfo {
+    impl bk_sqlx::Type<Postgres> for PetNameAndRaceArray {
+        fn type_info() -> bk_sqlx::postgres::PgTypeInfo {
             // Array type name is the name of the element type prefixed with `_`
-            sqlx::postgres::PgTypeInfo::with_name("_pet_name_and_race")
+            bk_sqlx::postgres::PgTypeInfo::with_name("_pet_name_and_race")
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for PetNameAndRaceArray {
+    impl<'r> bk_sqlx::Decode<'r, Postgres> for PetNameAndRaceArray {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
             Ok(Self(Vec::<PetNameAndRace>::decode(value)?))
         }
@@ -1214,7 +1214,7 @@ VALUES
 
     let mut conn = new::<Postgres>().await?;
 
-    let row = sqlx::query("select owner, array_agg(row(name, race)::pet_name_and_race) as pets from pets group by owner")
+    let row = bk_sqlx::query("select owner, array_agg(row(name, race)::pet_name_and_race) as pets from pets group by owner")
         .fetch_one(&mut conn)
         .await?;
 
@@ -1224,9 +1224,9 @@ VALUES
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_resolves_custom_types_in_anonymous_records() -> anyhow::Result<()> {
-    use sqlx_core::error::Error;
+    use bk_sqlx_core::error::Error;
     // This request involves nested records and array types.
 
     // Only supported in Postgres 11+
@@ -1271,7 +1271,7 @@ VALUES
 INSERT INTO repositories(repo_id, repo_name)
 VALUES
   (201, 'rust'),
-  (202, 'sqlx'),
+  (202, 'bk_sqlx'),
   (203, 'hello-world');
 INSERT INTO repo_memberships(repo_id, user_id, permission)
 VALUES
@@ -1289,17 +1289,17 @@ VALUES
         permission: String,
     }
 
-    impl sqlx::Type<Postgres> for RepoMember {
-        fn type_info() -> sqlx::postgres::PgTypeInfo {
-            sqlx::postgres::PgTypeInfo::with_name("repo_member")
+    impl bk_sqlx::Type<Postgres> for RepoMember {
+        fn type_info() -> bk_sqlx::postgres::PgTypeInfo {
+            bk_sqlx::postgres::PgTypeInfo::with_name("repo_member")
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for RepoMember {
+    impl<'r> bk_sqlx::Decode<'r, Postgres> for RepoMember {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-            let mut decoder = sqlx::postgres::types::PgRecordDecoder::new(value)?;
+            let mut decoder = bk_sqlx::postgres::types::PgRecordDecoder::new(value)?;
             let user_id = decoder.try_decode::<i32>()?;
             let permission = decoder.try_decode::<String>()?;
             Ok(Self {
@@ -1312,16 +1312,16 @@ VALUES
     #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
     struct RepoMemberArray(Vec<RepoMember>);
 
-    impl sqlx::Type<Postgres> for RepoMemberArray {
-        fn type_info() -> sqlx::postgres::PgTypeInfo {
+    impl bk_sqlx::Type<Postgres> for RepoMemberArray {
+        fn type_info() -> bk_sqlx::postgres::PgTypeInfo {
             // Array type name is the name of the element type prefixed with `_`
-            sqlx::postgres::PgTypeInfo::with_name("_repo_member")
+            bk_sqlx::postgres::PgTypeInfo::with_name("_repo_member")
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for RepoMemberArray {
+    impl<'r> bk_sqlx::Decode<'r, Postgres> for RepoMemberArray {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
             Ok(Self(Vec::<RepoMember>::decode(value)?))
         }
@@ -1329,14 +1329,14 @@ VALUES
 
     let mut conn = new::<Postgres>().await?;
 
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     #[allow(dead_code)] // We don't actually read these fields.
     struct Row {
         count: i64,
         items: Vec<(i32, String, RepoMemberArray)>,
     }
     // language=PostgreSQL
-    let row: Result<Row, Error> = sqlx::query_as::<_, Row>(
+    let row: Result<Row, Error> = bk_sqlx::query_as::<_, Row>(
         r"
         WITH
           members_by_repo AS (
@@ -1379,7 +1379,7 @@ VALUES
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn custom_type_resolution_respects_search_path() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -1398,40 +1398,40 @@ CREATE TYPE another.some_enum_type AS ENUM ('d', 'e', 'f');
     #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
     struct SomeEnumType(String);
 
-    impl sqlx::Type<Postgres> for SomeEnumType {
-        fn type_info() -> sqlx::postgres::PgTypeInfo {
-            sqlx::postgres::PgTypeInfo::with_name("some_enum_type")
+    impl bk_sqlx::Type<Postgres> for SomeEnumType {
+        fn type_info() -> bk_sqlx::postgres::PgTypeInfo {
+            bk_sqlx::postgres::PgTypeInfo::with_name("some_enum_type")
         }
 
-        fn compatible(ty: &sqlx::postgres::PgTypeInfo) -> bool {
+        fn compatible(ty: &bk_sqlx::postgres::PgTypeInfo) -> bool {
             *ty == Self::type_info()
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for SomeEnumType {
+    impl<'r> bk_sqlx::Decode<'r, Postgres> for SomeEnumType {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-            Ok(Self(<String as sqlx::Decode<Postgres>>::decode(value)?))
+            Ok(Self(<String as bk_sqlx::Decode<Postgres>>::decode(value)?))
         }
     }
 
-    impl<'q> sqlx::Encode<'q, Postgres> for SomeEnumType {
+    impl<'q> bk_sqlx::Encode<'q, Postgres> for SomeEnumType {
         fn encode_by_ref(
             &self,
-            buf: &mut sqlx::postgres::PgArgumentBuffer,
-        ) -> sqlx::encode::IsNull {
-            <String as sqlx::Encode<Postgres>>::encode_by_ref(&self.0, buf)
+            buf: &mut bk_sqlx::postgres::PgArgumentBuffer,
+        ) -> bk_sqlx::encode::IsNull {
+            <String as bk_sqlx::Encode<Postgres>>::encode_by_ref(&self.0, buf)
         }
     }
 
     let mut conn = new::<Postgres>().await?;
 
-    sqlx::query("set search_path = 'another'")
+    bk_sqlx::query("set search_path = 'another'")
         .execute(&mut conn)
         .await?;
 
-    let result = sqlx::query("SELECT 1 WHERE $1::some_enum_type = 'd'::some_enum_type;")
+    let result = bk_sqlx::query("SELECT 1 WHERE $1::some_enum_type = 'd'::some_enum_type;")
         .bind(SomeEnumType("d".into()))
         .fetch_all(&mut conn)
         .await;
@@ -1442,7 +1442,7 @@ CREATE TYPE another.some_enum_type AS ENUM ('d', 'e', 'f');
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_pg_server_num() -> anyhow::Result<()> {
     let conn = new::<Postgres>().await?;
 
@@ -1451,7 +1451,7 @@ async fn test_pg_server_num() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_copy_in() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
     conn.execute(
@@ -1474,7 +1474,7 @@ async fn it_can_copy_in() -> anyhow::Result<()> {
     assert_eq!(rows, 2);
 
     // conn is safe for reuse
-    let value = sqlx::query("select 1 + 1")
+    let value = bk_sqlx::query("select 1 + 1")
         .try_map(|row: PgRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
         .await?;
@@ -1484,7 +1484,7 @@ async fn it_can_copy_in() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_abort_copy_in() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
     conn.execute(
@@ -1505,7 +1505,7 @@ async fn it_can_abort_copy_in() -> anyhow::Result<()> {
     copy.abort("this is only a test").await?;
 
     // conn is safe for reuse
-    let value = sqlx::query("select 1 + 1")
+    let value = bk_sqlx::query("select 1 + 1")
         .try_map(|row: PgRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
         .await?;
@@ -1515,7 +1515,7 @@ async fn it_can_abort_copy_in() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_copy_out() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -1537,7 +1537,7 @@ async fn it_can_copy_out() -> anyhow::Result<()> {
     }
 
     // conn is safe for reuse
-    let value = sqlx::query("select 1 + 1")
+    let value = bk_sqlx::query("select 1 + 1")
         .try_map(|row: PgRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
         .await?;
@@ -1547,11 +1547,11 @@ async fn it_can_copy_out() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_encodes_custom_array_issue_1504() -> anyhow::Result<()> {
-    use sqlx::encode::IsNull;
-    use sqlx::postgres::{PgArgumentBuffer, PgTypeInfo};
-    use sqlx::{Decode, Encode, Type, ValueRef};
+    use bk_sqlx::encode::IsNull;
+    use bk_sqlx::postgres::{PgArgumentBuffer, PgTypeInfo};
+    use bk_sqlx::{Decode, Encode, Type, ValueRef};
 
     #[derive(Debug, PartialEq)]
     enum Value {
@@ -1562,7 +1562,7 @@ async fn it_encodes_custom_array_issue_1504() -> anyhow::Result<()> {
 
     impl<'r> Decode<'r, Postgres> for Value {
         fn decode(
-            value: sqlx::postgres::PgValueRef<'r>,
+            value: bk_sqlx::postgres::PgValueRef<'r>,
         ) -> std::result::Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
             let typ = value.type_info().into_owned();
 
@@ -1636,7 +1636,7 @@ async fn it_encodes_custom_array_issue_1504() -> anyhow::Result<()> {
 
     let mut conn = new::<Postgres>().await?;
 
-    let (row,): (Value,) = sqlx::query_as("SELECT $1::text[] as Dummy")
+    let (row,): (Value,) = bk_sqlx::query_as("SELECT $1::text[] as Dummy")
         .bind(Value::Array(vec![
             Value::String("Test 0".to_string()),
             Value::String("Test 1".to_string()),
@@ -1652,7 +1652,7 @@ async fn it_encodes_custom_array_issue_1504() -> anyhow::Result<()> {
         ])
     );
 
-    let (row,): (Value,) = sqlx::query_as("SELECT $1::int4[] as Dummy")
+    let (row,): (Value,) = bk_sqlx::query_as("SELECT $1::int4[] as Dummy")
         .bind(Value::Array(vec![
             Value::Number(3),
             Value::Number(2),
@@ -1669,18 +1669,18 @@ async fn it_encodes_custom_array_issue_1504() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_issue_1254() -> anyhow::Result<()> {
-    #[derive(sqlx::Type)]
-    #[sqlx(type_name = "pair")]
+    #[derive(bk_sqlx::Type)]
+    #[bk_sqlx(type_name = "pair")]
     struct Pair {
         one: i32,
         two: i32,
     }
 
     // array for custom type is not supported, use wrapper
-    #[derive(sqlx::Type)]
-    #[sqlx(type_name = "_pair")]
+    #[derive(bk_sqlx::Type)]
+    #[bk_sqlx(type_name = "_pair")]
     struct Pairs(Vec<Pair>);
 
     let mut conn = new::<Postgres>().await?;
@@ -1695,7 +1695,7 @@ CREATE TABLE issue_1254 (id INT4 PRIMARY KEY, pairs PAIR[]);
     )
     .await?;
 
-    let result = sqlx::query("INSERT INTO issue_1254 VALUES($1, $2)")
+    let result = bk_sqlx::query("INSERT INTO issue_1254 VALUES($1, $2)")
         .bind(0)
         .bind(Pairs(vec![Pair { one: 94, two: 87 }]))
         .execute(&mut conn)
@@ -1705,15 +1705,15 @@ CREATE TABLE issue_1254 (id INT4 PRIMARY KEY, pairs PAIR[]);
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_advisory_locks() -> anyhow::Result<()> {
     let pool = PgPoolOptions::new()
         .max_connections(2)
         .connect(&dotenvy::var("DATABASE_URL")?)
         .await?;
 
-    let lock1 = Arc::new(PgAdvisoryLock::new("sqlx-postgres-tests-1"));
-    let lock2 = Arc::new(PgAdvisoryLock::new("sqlx-postgres-tests-2"));
+    let lock1 = Arc::new(PgAdvisoryLock::new("bk_sqlx-postgres-tests-1"));
+    let lock2 = Arc::new(PgAdvisoryLock::new("bk_sqlx-postgres-tests-2"));
 
     let conn1 = pool.acquire().await?;
     let mut conn1_lock1 = lock1.acquire(conn1).await?;
@@ -1725,7 +1725,7 @@ async fn test_advisory_locks() -> anyhow::Result<()> {
     // leak so we can take it across the task boundary
     let conn2_lock2 = lock2.acquire(conn2).await?.leak();
 
-    sqlx_core::rt::spawn({
+    bk_sqlx_core::rt::spawn({
         let lock1 = lock1.clone();
         let lock2 = lock2.clone();
 
@@ -1768,20 +1768,20 @@ async fn test_advisory_locks() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_postgres_bytea_hex_deserialization_errors() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
     conn.execute("SET bytea_output = 'escape';").await?;
     for value in ["", "DEADBEEF"] {
         let query = format!("SELECT '\\x{value}'::bytea");
-        let res: sqlx::Result<Vec<u8>> = conn.fetch_one(query.as_str()).await?.try_get(0usize);
+        let res: bk_sqlx::Result<Vec<u8>> = conn.fetch_one(query.as_str()).await?.try_get(0usize);
         // Deserialization only supports hex format so this should error and definitely not panic.
         res.unwrap_err();
     }
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_shrink_buffers() -> anyhow::Result<()> {
     // We don't really have a good way to test that `.shrink_buffers()` functions as expected
     // without exposing a lot of internals, but we can at least be sure it doesn't
@@ -1792,7 +1792,7 @@ async fn test_shrink_buffers() -> anyhow::Result<()> {
     // The connection buffer is only 8 KiB by default so this should definitely force it to grow.
     let data = vec![0u8; 32 * 1024];
 
-    let ret: Vec<u8> = sqlx::query_scalar("SELECT $1::bytea")
+    let ret: Vec<u8> = bk_sqlx::query_scalar("SELECT $1::bytea")
         .bind(&data)
         .fetch_one(&mut conn)
         .await?;
@@ -1801,7 +1801,7 @@ async fn test_shrink_buffers() -> anyhow::Result<()> {
 
     conn.shrink_buffers();
 
-    let ret: i64 = sqlx::query_scalar("SELECT $1::int8")
+    let ret: i64 = bk_sqlx::query_scalar("SELECT $1::int8")
         .bind(&12345678i64)
         .fetch_one(&mut conn)
         .await?;
@@ -1811,20 +1811,20 @@ async fn test_shrink_buffers() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_error_handling_with_deferred_constraints() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    sqlx::query("CREATE TABLE IF NOT EXISTS deferred_constraint ( id INTEGER PRIMARY KEY )")
+    bk_sqlx::query("CREATE TABLE IF NOT EXISTS deferred_constraint ( id INTEGER PRIMARY KEY )")
         .execute(&mut conn)
         .await?;
 
-    sqlx::query("CREATE TABLE IF NOT EXISTS deferred_constraint_fk ( fk INTEGER CONSTRAINT deferred_fk REFERENCES deferred_constraint(id) DEFERRABLE INITIALLY DEFERRED )")
+    bk_sqlx::query("CREATE TABLE IF NOT EXISTS deferred_constraint_fk ( fk INTEGER CONSTRAINT deferred_fk REFERENCES deferred_constraint(id) DEFERRABLE INITIALLY DEFERRED )")
             .execute(&mut conn)
             .await?;
 
-    let result: sqlx::Result<i32> =
-        sqlx::query_scalar("INSERT INTO deferred_constraint_fk VALUES (1) RETURNING fk")
+    let result: bk_sqlx::Result<i32> =
+        bk_sqlx::query_scalar("INSERT INTO deferred_constraint_fk VALUES (1) RETURNING fk")
             .fetch_one(&mut conn)
             .await;
 
@@ -1835,12 +1835,12 @@ async fn test_error_handling_with_deferred_constraints() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 #[cfg(feature = "bigdecimal")]
 async fn test_issue_3052() {
-    use sqlx::types::BigDecimal;
+    use bk_sqlx::types::BigDecimal;
 
-    // https://github.com/launchbadge/sqlx/issues/3052
+    // https://github.com/launchbadge/bk_sqlx/issues/3052
     // Previously, attempting to bind a `BigDecimal` would panic if the value was out of range.
     // Now, we rewrite it to a sentinel value so that Postgres will return a range error.
     let too_small: BigDecimal = "1E-65536".parse().unwrap();
@@ -1848,13 +1848,13 @@ async fn test_issue_3052() {
 
     let mut conn = new::<Postgres>().await.unwrap();
 
-    let too_small_res = sqlx::query_scalar::<_, BigDecimal>("SELECT $1::numeric")
+    let too_small_res = bk_sqlx::query_scalar::<_, BigDecimal>("SELECT $1::numeric")
         .bind(&too_small)
         .fetch_one(&mut conn)
         .await;
 
     match too_small_res {
-        Err(sqlx::Error::Database(dbe)) => {
+        Err(bk_sqlx::Error::Database(dbe)) => {
             let dbe = dbe.downcast::<PgDatabaseError>();
 
             assert_eq!(dbe.code(), "22P03");
@@ -1862,13 +1862,13 @@ async fn test_issue_3052() {
         other => panic!("expected Err(DatabaseError), got {other:?}"),
     }
 
-    let too_large_res = sqlx::query_scalar::<_, BigDecimal>("SELECT $1::numeric")
+    let too_large_res = bk_sqlx::query_scalar::<_, BigDecimal>("SELECT $1::numeric")
         .bind(&too_large)
         .fetch_one(&mut conn)
         .await;
 
     match too_large_res {
-        Err(sqlx::Error::Database(dbe)) => {
+        Err(bk_sqlx::Error::Database(dbe)) => {
             let dbe = dbe.downcast::<PgDatabaseError>();
 
             assert_eq!(dbe.code(), "22P03");

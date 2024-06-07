@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
 use crate::http::user::UserAuth;
-use sqlx::PgPool;
+use bk_sqlx::PgPool;
 use validator::Validate;
 
 use crate::http::Result;
@@ -50,7 +50,7 @@ async fn create_post(
     req.validate()?;
     let user_id = req.auth.verify(&*db).await?;
 
-    let post = sqlx::query_as!(
+    let post = bk_sqlx::query_as!(
         Post,
         // language=PostgreSQL
         r#"
@@ -76,7 +76,7 @@ async fn create_post(
 async fn get_posts(db: Extension<PgPool>) -> Result<Json<Vec<Post>>> {
     // Note: normally you'd want to put a `LIMIT` on this as well,
     // though that would also necessitate implementing pagination.
-    let posts = sqlx::query_as!(
+    let posts = bk_sqlx::query_as!(
         Post,
         // language=PostgreSQL
         r#"

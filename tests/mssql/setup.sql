@@ -1,10 +1,10 @@
-IF DB_ID('sqlx') IS NULL
+IF DB_ID('bk-sqlx') IS NULL
     BEGIN
-        CREATE DATABASE sqlx;
+        CREATE DATABASE bk-sqlx;
     END;
 GO
 
-USE sqlx;
+USE bk-sqlx;
 GO
 
 IF OBJECT_ID('tweet') IS NULL

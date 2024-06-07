@@ -4,16 +4,16 @@
 /// struct type, if the query has at least one output column that is not `Void`, or `()` (unit) otherwise:
 ///
 /// ```rust,ignore
-/// # use sqlx::Connect;
+/// # use bk_sqlx::Connect;
 /// # #[cfg(all(feature = "mysql", feature = "_rt-async-std"))]
 /// # #[async_std::main]
-/// # async fn main() -> sqlx::Result<()>{
+/// # async fn main() -> bk_sqlx::Result<()>{
 /// # let db_url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL must be set");
 /// #
 /// # if !(db_url.starts_with("mysql") || db_url.starts_with("mariadb")) { return Ok(()) }
-/// # let mut conn = sqlx::MySqlConnection::connect(db_url).await?;
-/// // let mut conn = <impl sqlx::Executor>;
-/// let account = sqlx::query!("select (1) as id, 'Herp Derpinson' as name")
+/// # let mut conn = bk_sqlx::MySqlConnection::connect(db_url).await?;
+/// // let mut conn = <impl bk_sqlx::Executor>;
+/// let account = bk_sqlx::query!("select (1) as id, 'Herp Derpinson' as name")
 ///     .fetch_one(&mut conn)
 ///     .await?;
 ///
@@ -42,11 +42,11 @@
 ///
 /// | Number of Rows | Method to Call*             | Returns                                             | Notes |
 /// |----------------| ----------------------------|-----------------------------------------------------|-------|
-/// | None†          | `.execute(...).await`       | `sqlx::Result<DB::QueryResult>`                     | For `INSERT`/`UPDATE`/`DELETE` without `RETURNING`. |
-/// | Zero or One    | `.fetch_optional(...).await`| `sqlx::Result<Option<{adhoc struct}>>`              | Extra rows are ignored. |
-/// | Exactly One    | `.fetch_one(...).await`     | `sqlx::Result<{adhoc struct}>`                      | Errors if no rows were returned. Extra rows are ignored. Aggregate queries, use this. |
-/// | At Least One   | `.fetch(...)`               | `impl Stream<Item = sqlx::Result<{adhoc struct}>>`  | Call `.try_next().await` to get each row result. |
-/// | Multiple   | `.fetch_all(...)`               | `sqlx::Result<Vec<{adhoc struct}>>`  | |
+/// | None†          | `.execute(...).await`       | `bk_sqlx::Result<DB::QueryResult>`                     | For `INSERT`/`UPDATE`/`DELETE` without `RETURNING`. |
+/// | Zero or One    | `.fetch_optional(...).await`| `bk_sqlx::Result<Option<{adhoc struct}>>`              | Extra rows are ignored. |
+/// | Exactly One    | `.fetch_one(...).await`     | `bk_sqlx::Result<{adhoc struct}>`                      | Errors if no rows were returned. Extra rows are ignored. Aggregate queries, use this. |
+/// | At Least One   | `.fetch(...)`               | `impl Stream<Item = bk_sqlx::Result<{adhoc struct}>>`  | Call `.try_next().await` to get each row result. |
+/// | Multiple   | `.fetch_all(...)`               | `bk_sqlx::Result<Vec<{adhoc struct}>>`  | |
 ///
 /// \* All methods accept one of `&mut {connection type}`, `&mut Transaction` or `&Pool`.  
 /// † Only callable if the query returns no columns; otherwise it's assumed the query *may* return at least one row.
@@ -55,7 +55,7 @@
 /// server with the schema that the query string will be checked against. All variants of `query!()`
 /// use [dotenv]<sup>1</sup> so this can be in a `.env` file instead.
 ///
-///     * Or, `.sqlx` must exist at the workspace root. See [Offline Mode](#offline-mode-requires-the-offline-feature)
+///     * Or, `.bk_sqlx` must exist at the workspace root. See [Offline Mode](#offline-mode-requires-the-offline-feature)
 ///       below.
 ///
 /// * The query must be a string literal, or concatenation of string literals using `+` (useful
@@ -79,16 +79,16 @@
 /// and this macro will typecheck passed arguments and error on missing ones:
 ///
 /// ```rust,ignore
-/// # use sqlx::Connect;
+/// # use bk_sqlx::Connect;
 /// # #[cfg(all(feature = "mysql", feature = "_rt-async-std"))]
 /// # #[async_std::main]
-/// # async fn main() -> sqlx::Result<()>{
+/// # async fn main() -> bk_sqlx::Result<()>{
 /// # let db_url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL must be set");
 /// #
 /// # if !(db_url.starts_with("mysql") || db_url.starts_with("mariadb")) { return Ok(()) }
-/// # let mut conn = sqlx::mysql::MySqlConnection::connect(db_url).await?;
-/// // let mut conn = <impl sqlx::Executor>;
-/// let account = sqlx::query!(
+/// # let mut conn = bk_sqlx::mysql::MySqlConnection::connect(db_url).await?;
+/// // let mut conn = <impl bk_sqlx::Executor>;
+/// let account = bk_sqlx::query!(
 ///         // just pretend "accounts" is a real table
 ///         "select * from (select (1) as id, 'Herp Derpinson' as name) accounts where id = ?",
 ///         1i32
@@ -152,13 +152,13 @@
 /// types of bind parameters and no typechecking is emitted:
 ///
 /// ```rust,ignore
-/// #[derive(sqlx::Type)]
-/// #[sqlx(transparent)]
+/// #[derive(bk_sqlx::Type)]
+/// #[bk_sqlx(transparent)]
 /// struct MyInt4(i32);
 ///
 /// let my_int = MyInt4(1);
 ///
-/// sqlx::query!("select $1::int4 as id", my_int as MyInt4)
+/// bk_sqlx::query!("select $1::int4 as id", my_int as MyInt4)
 /// ```
 ///
 /// Using `expr as _` simply signals to the macro to not type-check that bind expression,
@@ -182,7 +182,7 @@
 /// # let mut conn = panic!();
 /// // Postgres: using a raw query string lets us use unescaped double-quotes
 /// // Note that this query wouldn't work in SQLite as we still don't know the exact type of `id`
-/// let record = sqlx::query!(r#"select 1 as "id!""#) // MySQL: use "select 1 as `id!`" instead
+/// let record = bk_sqlx::query!(r#"select 1 as "id!""#) // MySQL: use "select 1 as `id!`" instead
 ///     .fetch_one(&mut conn)
 ///     .await?;
 ///
@@ -201,7 +201,7 @@
 /// # async fn main() {
 /// # let mut conn = panic!();
 /// // Postgres/SQLite:
-/// let record = sqlx::query!(r#"select 1 as "id?""#) // MySQL: use "select 1 as `id?`" instead
+/// let record = bk_sqlx::query!(r#"select 1 as "id?""#) // MySQL: use "select 1 as `id?`" instead
 ///     .fetch_one(&mut conn)
 ///     .await?;
 ///
@@ -233,7 +233,7 @@
 /// # async fn main() {
 /// # let mut conn = panic!();
 /// // Ironically this is the exact column we primarily look at to determine nullability in Postgres
-/// let record = sqlx::query!(
+/// let record = bk_sqlx::query!(
 ///     r#"select attnotnull as "attnotnull?" from (values (1)) ids left join pg_attribute on false"#
 /// )
 /// .fetch_one(&mut conn)
@@ -261,14 +261,14 @@
 /// ```rust,ignore
 /// # async fn main() {
 /// # let mut conn = panic!();
-/// #[derive(sqlx::Type)]
-/// #[sqlx(transparent)]
+/// #[derive(bk_sqlx::Type)]
+/// #[bk_sqlx(transparent)]
 /// struct MyInt4(i32);
 ///
 /// let my_int = MyInt4(1);
 ///
 /// // Postgres/SQLite
-/// sqlx::query!(r#"select 1 as "id!: MyInt4""#) // MySQL: use "select 1 as `id: MyInt4`" instead
+/// bk_sqlx::query!(r#"select 1 as "id!: MyInt4""#) // MySQL: use "select 1 as `id: MyInt4`" instead
 ///     .fetch_one(&mut conn)
 ///     .await?;
 ///
@@ -293,21 +293,21 @@
 /// The macros can be configured to not require a live database connection for compilation,
 /// but it requires a couple extra steps:
 ///
-/// * Run `cargo install sqlx-cli`.
+/// * Run `cargo install bk_sqlx-cli`.
 /// * In your project with `DATABASE_URL` set (or in a `.env` file) and the database server running,
-///   run `cargo sqlx prepare`.
-/// * Check the generated `.sqlx` directory into version control.
+///   run `cargo bk_sqlx prepare`.
+/// * Check the generated `.bk_sqlx` directory into version control.
 /// * Don't have `DATABASE_URL` set during compilation.
 ///
 /// Your project can now be built without a database connection (you must omit `DATABASE_URL` or
-/// else it will still try to connect). To update the generated file simply run `cargo sqlx prepare`
+/// else it will still try to connect). To update the generated file simply run `cargo bk_sqlx prepare`
 /// again.
 ///
-/// To ensure that your `.sqlx` directory is kept up-to-date, both with the queries in your
+/// To ensure that your `.bk_sqlx` directory is kept up-to-date, both with the queries in your
 /// project and your database schema itself, run
-/// `cargo install sqlx-cli && cargo sqlx prepare --check` in your Continuous Integration script.
+/// `cargo install bk_sqlx-cli && cargo bk_sqlx prepare --check` in your Continuous Integration script.
 ///
-/// See [the README for `sqlx-cli`](https://crates.io/crates/sqlx-cli) for more information.
+/// See [the README for `bk_sqlx-cli`](https://crates.io/crates/bk_sqlx-cli) for more information.
 ///
 /// ## See Also
 /// * [query_as!] if you want to use a struct you can name,
@@ -318,7 +318,7 @@
 macro_rules! query (
     // in Rust 1.45 we can now invoke proc macros in expression position
     ($query:expr) => ({
-        $crate::sqlx_macros::expand_query!(source = $query)
+        $crate::bk_sqlx_macros::expand_query!(source = $query)
     });
     // RFC: this semantically should be `$($args:expr),*` (with `$(,)?` to allow trailing comma)
     // but that doesn't work in 1.45 because `expr` fragments get wrapped in a way that changes
@@ -329,7 +329,7 @@ macro_rules! query (
     // so really the only benefit is making the macros _slightly_ self-documenting, but it's
     // not like it makes them magically understandable at-a-glance.
     ($query:expr, $($args:tt)*) => ({
-        $crate::sqlx_macros::expand_query!(source = $query, args = [$($args)*])
+        $crate::bk_sqlx_macros::expand_query!(source = $query, args = [$($args)*])
     })
 );
 
@@ -339,10 +339,10 @@ macro_rules! query (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_unchecked (
     ($query:expr) => ({
-        $crate::sqlx_macros::expand_query!(source = $query, checked = false)
+        $crate::bk_sqlx_macros::expand_query!(source = $query, checked = false)
     });
     ($query:expr, $($args:tt)*) => ({
-        $crate::sqlx_macros::expand_query!(source = $query, args = [$($args)*], checked = false)
+        $crate::bk_sqlx_macros::expand_query!(source = $query, args = [$($args)*], checked = false)
     })
 );
 
@@ -367,15 +367,15 @@ macro_rules! query_unchecked (
 ///
 /// `src/my_query.rs`:
 /// ```rust,ignore
-/// # use sqlx::Connect;
+/// # use bk_sqlx::Connect;
 /// # #[cfg(all(feature = "mysql", feature = "_rt-async-std"))]
 /// # #[async_std::main]
-/// # async fn main() -> sqlx::Result<()>{
+/// # async fn main() -> bk_sqlx::Result<()>{
 /// # let db_url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL must be set");
 /// #
 /// # if !(db_url.starts_with("mysql") || db_url.starts_with("mariadb")) { return Ok(()) }
-/// # let mut conn = sqlx::MySqlConnection::connect(db_url).await?;
-/// let account = sqlx::query_file!("tests/test-query-account-by-id.sql", 1i32)
+/// # let mut conn = bk_sqlx::MySqlConnection::connect(db_url).await?;
+/// let account = bk_sqlx::query_file!("tests/test-query-account-by-id.sql", 1i32)
 ///     .fetch_one(&mut conn)
 ///     .await?;
 ///
@@ -392,10 +392,10 @@ macro_rules! query_unchecked (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_file (
     ($path:literal) => ({
-        $crate::sqlx_macros::expand_query!(source_file = $path)
+        $crate::bk_sqlx_macros::expand_query!(source_file = $path)
     });
     ($path:literal, $($args:tt)*) => ({
-        $crate::sqlx_macros::expand_query!(source_file = $path, args = [$($args)*])
+        $crate::bk_sqlx_macros::expand_query!(source_file = $path, args = [$($args)*])
     })
 );
 
@@ -405,10 +405,10 @@ macro_rules! query_file (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_file_unchecked (
     ($path:literal) => ({
-        $crate::sqlx_macros::expand_query!(source_file = $path, checked = false)
+        $crate::bk_sqlx_macros::expand_query!(source_file = $path, checked = false)
     });
     ($path:literal, $($args:tt)*) => ({
-        $crate::sqlx_macros::expand_query!(source_file = $path, args = [$($args)*], checked = false)
+        $crate::bk_sqlx_macros::expand_query!(source_file = $path, args = [$($args)*], checked = false)
     })
 );
 
@@ -441,22 +441,22 @@ macro_rules! query_file_unchecked (
 /// The only modification to the `query!()` syntax is that the struct name is given before the SQL
 /// string:
 /// ```rust,ignore
-/// # use sqlx::Connect;
+/// # use bk_sqlx::Connect;
 /// # #[cfg(all(feature = "mysql", feature = "_rt-async-std"))]
 /// # #[async_std::main]
-/// # async fn main() -> sqlx::Result<()>{
+/// # async fn main() -> bk_sqlx::Result<()>{
 /// # let db_url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL must be set");
 /// #
 /// # if !(db_url.starts_with("mysql") || db_url.starts_with("mariadb")) { return Ok(()) }
-/// # let mut conn = sqlx::MySqlConnection::connect(db_url).await?;
+/// # let mut conn = bk_sqlx::MySqlConnection::connect(db_url).await?;
 /// #[derive(Debug)]
 /// struct Account {
 ///     id: i32,
 ///     name: String
 /// }
 ///
-/// // let mut conn = <impl sqlx::Executor>;
-/// let account = sqlx::query_as!(
+/// // let mut conn = <impl bk_sqlx::Executor>;
+/// let account = bk_sqlx::query_as!(
 ///         Account,
 ///         "select * from (select (1) as id, 'Herp Derpinson' as name) accounts where id = ?",
 ///         1i32
@@ -478,10 +478,10 @@ macro_rules! query_file_unchecked (
 ///
 /// | Number of Rows | Method to Call*             | Returns (`T` being the given struct)   | Notes |
 /// |----------------| ----------------------------|----------------------------------------|-------|
-/// | Zero or One    | `.fetch_optional(...).await`| `sqlx::Result<Option<T>>`              | Extra rows are ignored. |
-/// | Exactly One    | `.fetch_one(...).await`     | `sqlx::Result<T>`                      | Errors if no rows were returned. Extra rows are ignored. Aggregate queries, use this. |
-/// | At Least One   | `.fetch(...)`               | `impl Stream<Item = sqlx::Result<T>>`  | Call `.try_next().await` to get each row result. |
-/// | Multiple       | `.fetch_all(...)`           | `sqlx::Result<Vec<T>>`  | |
+/// | Zero or One    | `.fetch_optional(...).await`| `bk_sqlx::Result<Option<T>>`              | Extra rows are ignored. |
+/// | Exactly One    | `.fetch_one(...).await`     | `bk_sqlx::Result<T>`                      | Errors if no rows were returned. Extra rows are ignored. Aggregate queries, use this. |
+/// | At Least One   | `.fetch(...)`               | `impl Stream<Item = bk_sqlx::Result<T>>`  | Call `.try_next().await` to get each row result. |
+/// | Multiple       | `.fetch_all(...)`           | `bk_sqlx::Result<Vec<T>>`  | |
 ///
 /// \* All methods accept one of `&mut {connection type}`, `&mut Transaction` or `&Pool`.
 /// (`.execute()` is omitted as this macro requires at least one column to be returned.)
@@ -498,8 +498,8 @@ macro_rules! query_file_unchecked (
 /// This allows you to override the inferred type of a column to instead use a custom-defined type:
 ///
 /// ```rust,ignore
-/// #[derive(sqlx::Type)]
-/// #[sqlx(transparent)]
+/// #[derive(bk_sqlx::Type)]
+/// #[bk_sqlx(transparent)]
 /// struct MyInt4(i32);
 ///
 /// struct Record {
@@ -509,7 +509,7 @@ macro_rules! query_file_unchecked (
 /// let my_int = MyInt4(1);
 ///
 /// // Postgres/SQLite
-/// sqlx::query_as!(Record, r#"select 1 as "id: _""#) // MySQL: use "select 1 as `id: _`" instead
+/// bk_sqlx::query_as!(Record, r#"select 1 as "id: _""#) // MySQL: use "select 1 as `id: _`" instead
 ///     .fetch_one(&mut conn)
 ///     .await?;
 ///
@@ -528,7 +528,7 @@ macro_rules! query_file_unchecked (
 ///     name: Option<String>,
 /// }
 ///
-/// let account = sqlx::query_as!(
+/// let account = bk_sqlx::query_as!(
 ///     Account,
 ///     r#"SELECT id, name from (VALUES (1, 'Herp Derpinson')) accounts(id, name)"#,
 /// )
@@ -541,7 +541,7 @@ macro_rules! query_file_unchecked (
 /// error[E0308]: mismatched types
 ///    --> tests/postgres/macros.rs:126:19
 ///     |
-/// 126 |       let account = sqlx::query_as!(
+/// 126 |       let account = bk_sqlx::query_as!(
 ///     |  ___________________^
 /// 127 | |         Account,
 /// 128 | |         r#"SELECT id, name from (VALUES (1, 'Herp Derpinson')) accounts(id, name)"#,
@@ -570,10 +570,10 @@ macro_rules! query_file_unchecked (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_as (
     ($out_struct:path, $query:expr) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source = $query)
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source = $query)
     });
     ($out_struct:path, $query:expr, $($args:tt)*) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source = $query, args = [$($args)*])
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source = $query, args = [$($args)*])
     })
 );
 
@@ -582,22 +582,22 @@ macro_rules! query_as (
 /// Enforces requirements of both macros; see them for details.
 ///
 /// ```rust,ignore
-/// # use sqlx::Connect;
+/// # use bk_sqlx::Connect;
 /// # #[cfg(all(feature = "mysql", feature = "_rt-async-std"))]
 /// # #[async_std::main]
-/// # async fn main() -> sqlx::Result<()>{
+/// # async fn main() -> bk_sqlx::Result<()>{
 /// # let db_url = dotenvy::var("DATABASE_URL").expect("DATABASE_URL must be set");
 /// #
 /// # if !(db_url.starts_with("mysql") || db_url.starts_with("mariadb")) { return Ok(()) }
-/// # let mut conn = sqlx::MySqlConnection::connect(db_url).await?;
+/// # let mut conn = bk_sqlx::MySqlConnection::connect(db_url).await?;
 /// #[derive(Debug)]
 /// struct Account {
 ///     id: i32,
 ///     name: String
 /// }
 ///
-/// // let mut conn = <impl sqlx::Executor>;
-/// let account = sqlx::query_file_as!(Account, "tests/test-query-account-by-id.sql", 1i32)
+/// // let mut conn = <impl bk_sqlx::Executor>;
+/// let account = bk_sqlx::query_file_as!(Account, "tests/test-query-account-by-id.sql", 1i32)
 ///     .fetch_one(&mut conn)
 ///     .await?;
 ///
@@ -614,10 +614,10 @@ macro_rules! query_as (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_file_as (
     ($out_struct:path, $path:literal) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source_file = $path)
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source_file = $path)
     });
     ($out_struct:path, $path:literal, $($args:tt)*) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source_file = $path, args = [$($args)*])
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source_file = $path, args = [$($args)*])
     })
 );
 
@@ -627,11 +627,11 @@ macro_rules! query_file_as (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_as_unchecked (
     ($out_struct:path, $query:expr) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source = $query, checked = false)
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source = $query, checked = false)
     });
 
     ($out_struct:path, $query:expr, $($args:tt)*) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source = $query, args = [$($args)*], checked = false)
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source = $query, args = [$($args)*], checked = false)
     })
 );
 
@@ -642,11 +642,11 @@ macro_rules! query_as_unchecked (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_file_as_unchecked (
     ($out_struct:path, $path:literal) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source_file = $path, checked = false)
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source_file = $path, checked = false)
     });
 
     ($out_struct:path, $path:literal, $($args:tt)*) => ( {
-        $crate::sqlx_macros::expand_query!(record = $out_struct, source_file = $path, args = [$($args)*], checked = false)
+        $crate::bk_sqlx_macros::expand_query!(record = $out_struct, source_file = $path, args = [$($args)*], checked = false)
     })
 );
 
@@ -668,10 +668,10 @@ macro_rules! query_file_as_unchecked (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_scalar (
     ($query:expr) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source = $query)
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source = $query)
     );
     ($query:expr, $($args:tt)*) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source = $query, args = [$($args)*])
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source = $query, args = [$($args)*])
     )
 );
 
@@ -680,10 +680,10 @@ macro_rules! query_scalar (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_file_scalar (
     ($path:literal) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source_file = $path)
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source_file = $path)
     );
     ($path:literal, $($args:tt)*) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source_file = $path, args = [$($args)*])
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source_file = $path, args = [$($args)*])
     )
 );
 
@@ -697,10 +697,10 @@ macro_rules! query_file_scalar (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_scalar_unchecked (
     ($query:expr) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source = $query, checked = false)
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source = $query, checked = false)
     );
     ($query:expr, $($args:tt)*) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source = $query, args = [$($args)*], checked = false)
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source = $query, args = [$($args)*], checked = false)
     )
 );
 
@@ -714,25 +714,25 @@ macro_rules! query_scalar_unchecked (
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
 macro_rules! query_file_scalar_unchecked (
     ($path:literal) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source_file = $path, checked = false)
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source_file = $path, checked = false)
     );
     ($path:literal, $($args:tt)*) => (
-        $crate::sqlx_macros::expand_query!(scalar = _, source_file = $path, args = [$($args)*], checked = false)
+        $crate::bk_sqlx_macros::expand_query!(scalar = _, source_file = $path, args = [$($args)*], checked = false)
     )
 );
 
 /// Embeds migrations into the binary by expanding to a static instance of [Migrator][crate::migrate::Migrator].
 ///
 /// ```rust,ignore
-/// sqlx::migrate!("db/migrations")
+/// bk_sqlx::migrate!("db/migrations")
 ///     .run(&pool)
 ///     .await?;
 /// ```
 ///
 /// ```rust,ignore
-/// use sqlx::migrate::Migrator;
+/// use bk_sqlx::migrate::Migrator;
 ///
-/// static MIGRATOR: Migrator = sqlx::migrate!(); // defaults to "./migrations"
+/// static MIGRATOR: Migrator = bk_sqlx::migrate!(); // defaults to "./migrations"
 /// ```
 ///
 /// The directory must be relative to the project root (the directory containing `Cargo.toml`),
@@ -770,16 +770,16 @@ macro_rules! query_file_scalar_unchecked (
 /// }
 /// ```
 ///
-/// You can run `sqlx migrate build-script` to generate this file automatically.
+/// You can run `bk_sqlx migrate build-script` to generate this file automatically.
 ///
 /// See: [The Cargo Book: 3.8 Build Scripts; Outputs of the Build Script](https://doc.rust-lang.org/stable/cargo/reference/build-scripts.html#outputs-of-the-build-script)
 ///
 /// #### Nightly Rust: `cfg` Flag
-/// The `migrate!()` macro also listens to `--cfg sqlx_macros_unstable`, which will enable
+/// The `migrate!()` macro also listens to `--cfg bk_sqlx_macros_unstable`, which will enable
 /// the `track_path` feature to directly tell the compiler to watch the `migrations/` directory:
 ///
 /// ```sh,ignore
-/// $ env RUSTFLAGS='--cfg sqlx_macros_unstable' cargo build
+/// $ env RUSTFLAGS='--cfg bk_sqlx_macros_unstable' cargo build
 /// ```
 ///
 /// Note that this unfortunately will trigger a fully recompile of your dependency tree, at least
@@ -788,7 +788,7 @@ macro_rules! query_file_scalar_unchecked (
 /// You can also set it in `build.rustflags` in `.cargo/config.toml`:
 /// ```toml,ignore
 /// [build]
-/// rustflags = ["--cfg=sqlx_macros_unstable"]
+/// rustflags = ["--cfg=bk_sqlx_macros_unstable"]
 /// ```
 ///
 /// And then continue building and running your project normally.
@@ -806,10 +806,10 @@ macro_rules! query_file_scalar_unchecked (
 #[macro_export]
 macro_rules! migrate {
     ($dir:literal) => {{
-        $crate::sqlx_macros::migrate!($dir)
+        $crate::bk_sqlx_macros::migrate!($dir)
     }};
 
     () => {{
-        $crate::sqlx_macros::migrate!("./migrations")
+        $crate::bk_sqlx_macros::migrate!("./migrations")
     }};
 }

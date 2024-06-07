@@ -9,21 +9,21 @@
 
 <div align="center">
   <!-- Github Actions -->
-  <a href="https://github.com/launchbadge/sqlx/actions/workflows/sqlx.yml?query=branch%3Amain">
-    <img src="https://img.shields.io/github/actions/workflow/status/launchbadge/sqlx/sqlx.yml?branch=main&style=flat-square" alt="actions status" /></a>
+  <a href="https://github.com/launchbadge/bk-sqlx/actions/workflows/bk-sqlx.yml?query=branch%3Amain">
+    <img src="https://img.shields.io/github/actions/workflow/status/launchbadge/bk-sqlx/bk-sqlx.yml?branch=main&style=flat-square" alt="actions status" /></a>
   <!-- Version -->
-  <a href="https://crates.io/crates/sqlx">
-    <img src="https://img.shields.io/crates/v/sqlx.svg?style=flat-square"
+  <a href="https://crates.io/crates/bk-sqlx">
+    <img src="https://img.shields.io/crates/v/bk-sqlx.svg?style=flat-square"
     alt="Crates.io version" /></a>
   <!-- Discord -->
   <a href="https://discord.gg/uuruzJ7">
   <img src="https://img.shields.io/discord/665528275556106240?style=flat-square" alt="chat" /></a>
   <!-- Docs -->
-  <a href="https://docs.rs/sqlx">
+  <a href="https://docs.rs/bk-sqlx">
   <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square" alt="docs.rs docs" /></a>
   <!-- Downloads -->
-  <a href="https://crates.io/crates/sqlx">
-    <img src="https://img.shields.io/crates/d/sqlx.svg?style=flat-square" alt="Download" />
+  <a href="https://crates.io/crates/bk-sqlx">
+    <img src="https://img.shields.io/crates/d/bk-sqlx.svg?style=flat-square" alt="Download" />
   </a>
 </div>
 
@@ -37,7 +37,7 @@
       Usage
     </a>
     <span> | </span>
-    <a href="https://docs.rs/sqlx">
+    <a href="https://docs.rs/bk-sqlx">
       Docs
     </a>
   </h4>
@@ -61,7 +61,7 @@ SQLx is an async, pure Rust<sub>†</sub> SQL crate featuring compile-time check
 
 -   **Truly Asynchronous**. Built from the ground-up using async/await for maximum concurrency.
 
--   **Compile-time checked queries** (if you want). See [SQLx is not an ORM](#sqlx-is-not-an-orm).
+-   **Compile-time checked queries** (if you want). See [SQLx is not an ORM](#bk-sqlx-is-not-an-orm).
 
 -   **Database Agnostic**. Support for [PostgreSQL], [MySQL], [MariaDB], [SQLite].
     -   [MSSQL] was supported prior to version 0.7, but has been removed pending a full rewrite of the driver as part of our [SQLx Pro initiative].
@@ -85,17 +85,17 @@ The SQLite driver directly invokes the SQLite3 API via `libsqlite3-sys`, which r
 [mysql]: https://www.mysql.com/
 [mariadb]: https://www.mariadb.org/
 [mssql]: https://www.microsoft.com/en-us/sql-server
-[SQLx Pro initiative]: https://github.com/launchbadge/sqlx/discussions/1616
+[SQLx Pro initiative]: https://github.com/launchbadge/bk-sqlx/discussions/1616
 
 ---
 
 -   Cross-platform. Being native Rust, SQLx will compile anywhere Rust is supported.
 
--   Built-in connection pooling with `sqlx::Pool`.
+-   Built-in connection pooling with `bk-sqlx::Pool`.
 
 -   Row streaming. Data is read asynchronously from the database and decoded on demand.
 
--   Automatic statement preparation and caching. When using the high-level query API (`sqlx::query`), statements are
+-   Automatic statement preparation and caching. When using the high-level query API (`bk-sqlx::query`), statements are
     prepared and cached per connection.
 
 -   Simple (unprepared) query execution including fetching results into the same `Row` types used by
@@ -125,18 +125,18 @@ SQLx is compatible with the [`async-std`], [`tokio`], and [`actix`] runtimes; an
 # PICK ONE OF THE FOLLOWING:
 
 # tokio (no TLS)
-sqlx = { version = "0.7", features = [ "runtime-tokio" ] }
+bk-sqlx = { version = "0.7", features = [ "runtime-tokio" ] }
 # tokio + native-tls
-sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-native-tls" ] }
+bk-sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-native-tls" ] }
 # tokio + rustls
-sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls" ] }
+bk-sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls" ] }
 
 # async-std (no TLS)
-sqlx = { version = "0.7", features = [ "runtime-async-std" ] }
+bk-sqlx = { version = "0.7", features = [ "runtime-async-std" ] }
 # async-std + native-tls
-sqlx = { version = "0.7", features = [ "runtime-async-std", "tls-native-tls" ] }
+bk-sqlx = { version = "0.7", features = [ "runtime-async-std", "tls-native-tls" ] }
 # async-std + rustls
-sqlx = { version = "0.7", features = [ "runtime-async-std", "tls-rustls" ] }
+bk-sqlx = { version = "0.7", features = [ "runtime-async-std", "tls-rustls" ] }
 ```
 
 #### Cargo Feature Flags
@@ -195,9 +195,9 @@ be removed in the future.
 
 -   `json`: Add support for `JSON` and `JSONB` (in postgres) using the `serde_json` crate.
 
--   Offline mode is now always enabled. See [sqlx-cli/README.md][readme-offline].
+-   Offline mode is now always enabled. See [bk-sqlx-cli/README.md][readme-offline].
 
-[readme-offline]: sqlx-cli/README.md#enable-building-in-offline-mode-with-query
+[readme-offline]: bk-sqlx-cli/README.md#enable-building-in-offline-mode-with-query
 
 ## SQLx is not an ORM!
 
@@ -224,14 +224,14 @@ See the `examples/` folder for more in-depth usage.
 ### Quickstart
 
 ```rust
-use sqlx::postgres::PgPoolOptions;
-// use sqlx::mysql::MySqlPoolOptions;
+use bk-sqlx::postgres::PgPoolOptions;
+// use bk-sqlx::mysql::MySqlPoolOptions;
 // etc.
 
 #[async_std::main] // Requires the `attributes` feature of `async-std`
 // or #[tokio::main]
 // or #[actix_web::main]
-async fn main() -> Result<(), sqlx::Error> {
+async fn main() -> Result<(), bk-sqlx::Error> {
     // Create a connection pool
     //  for MySQL/MariaDB, use MySqlPoolOptions::new()
     //  for SQLite, use SqlitePoolOptions::new()
@@ -241,7 +241,7 @@ async fn main() -> Result<(), sqlx::Error> {
         .connect("postgres://postgres:password@localhost/test").await?;
 
     // Make a simple query to return the given parameter (use a question mark `?` instead of `$1` for MySQL/MariaDB)
-    let row: (i64,) = sqlx::query_as("SELECT $1")
+    let row: (i64,) = bk-sqlx::query_as("SELECT $1")
         .bind(150_i64)
         .fetch_one(&pool).await?;
 
@@ -257,12 +257,12 @@ async fn main() -> Result<(), sqlx::Error> {
 A single connection can be established using any of the database connection types and calling `connect()`.
 
 ```rust
-use sqlx::Connection;
+use bk-sqlx::Connection;
 
 let conn = SqliteConnection::connect("sqlite::memory:").await?;
 ```
 
-Generally, you will want to instead create a connection pool (`sqlx::Pool`) for the application to
+Generally, you will want to instead create a connection pool (`bk-sqlx::Pool`) for the application to
 regulate how many server-side connections it's using.
 
 ```rust
@@ -282,21 +282,21 @@ and a `Query` or `QueryAs` struct is treated as a prepared query.
 ```rust
 // low-level, Executor trait
 conn.execute("BEGIN").await?; // unprepared, simple query
-conn.execute(sqlx::query("DELETE FROM table")).await?; // prepared, cached query
+conn.execute(bk-sqlx::query("DELETE FROM table")).await?; // prepared, cached query
 ```
 
 We should prefer to use the high-level `query` interface whenever possible. To make this easier, there are finalizers
 on the type to avoid the need to wrap with an executor.
 
 ```rust
-sqlx::query("DELETE FROM table").execute(&mut conn).await?;
-sqlx::query("DELETE FROM table").execute(&pool).await?;
+bk-sqlx::query("DELETE FROM table").execute(&mut conn).await?;
+bk-sqlx::query("DELETE FROM table").execute(&pool).await?;
 ```
 
 The `execute` query finalizer returns the number of affected rows, if any, and drops all received results.
 In addition, there are `fetch`, `fetch_one`, `fetch_optional`, and `fetch_all` to receive results.
 
-The `Query` type returned from `sqlx::query` will return `Row<'conn>` from the database. Column values can be accessed
+The `Query` type returned from `bk-sqlx::query` will return `Row<'conn>` from the database. Column values can be accessed
 by ordinal or by name with `row.get()`. As the `Row` retains an immutable borrow on the connection, only one
 `Row` may exist at a time.
 
@@ -306,7 +306,7 @@ The `fetch` query finalizer returns a stream-like type that iterates through the
 // provides `try_next`
 use futures::TryStreamExt;
 
-let mut rows = sqlx::query("SELECT * FROM users WHERE email = ?")
+let mut rows = bk-sqlx::query("SELECT * FROM users WHERE email = ?")
     .bind(email)
     .fetch(&mut conn);
 
@@ -319,7 +319,7 @@ while let Some(row) = rows.try_next().await? {
 To assist with mapping the row into a domain type, one of two idioms may be used:
 
 ```rust
-let mut stream = sqlx::query("SELECT * FROM users")
+let mut stream = bk-sqlx::query("SELECT * FROM users")
     .map(|row: PgRow| {
         // map the row into a user-defined domain type
     })
@@ -327,10 +327,10 @@ let mut stream = sqlx::query("SELECT * FROM users")
 ```
 
 ```rust
-#[derive(sqlx::FromRow)]
+#[derive(bk-sqlx::FromRow)]
 struct User { name: String, id: i64 }
 
-let mut stream = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ? OR name = ?")
+let mut stream = bk-sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = ? OR name = ?")
     .bind(user_email)
     .bind(user_name)
     .fetch(&mut conn);
@@ -341,11 +341,11 @@ from the database.
 
 ### Compile-time verification
 
-We can use the macro, `sqlx::query!` to achieve compile-time syntactic and semantic verification of the SQL, with
+We can use the macro, `bk-sqlx::query!` to achieve compile-time syntactic and semantic verification of the SQL, with
 an output to an anonymous record type where each SQL column is a Rust field (using raw identifiers where needed).
 
 ```rust
-let countries = sqlx::query!(
+let countries = bk-sqlx::query!(
         "
 SELECT country, COUNT(*) as count
 FROM users
@@ -392,7 +392,7 @@ mostly identical except that you can name the output type.
 // no traits are needed
 struct Country { country: String, count: i64 }
 
-let countries = sqlx::query_as!(Country,
+let countries = bk-sqlx::query_as!(Country,
         "
 SELECT country, COUNT(*) as count
 FROM users
@@ -410,8 +410,8 @@ WHERE organization = ?
 
 To avoid the need of having a development database around to compile the project even when no
 modifications (to the database-accessing parts of the code) are done, you can enable "offline mode"
-to cache the results of the SQL query analysis using the `sqlx` command-line tool. See
-[sqlx-cli/README.md](./sqlx-cli/README.md#enable-building-in-offline-mode-with-query).
+to cache the results of the SQL query analysis using the `bk-sqlx` command-line tool. See
+[bk-sqlx-cli/README.md](bk-sqlx-cli/README.md#enable-building-in-offline-mode-with-query).
 
 Compile-time verified queries do quite a bit of work at compile time. Incremental actions like
 `cargo check` and `cargo build` can be significantly faster when using an optimized build by
@@ -419,7 +419,7 @@ putting the following in your `Cargo.toml` (More information in the
 [Profiles section](https://doc.rust-lang.org/cargo/reference/profiles.html) of The Cargo Book)
 
 ```toml
-[profile.dev.package.sqlx-macros]
+[profile.dev.package.bk-sqlx-macros]
 opt-level = 3
 ```
 
@@ -431,7 +431,7 @@ so we now use the `dotenvy` crate instead. The file format is the same.
 This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in 100% Safe Rust.
 
 If the `sqlite` feature is enabled, this is downgraded to `#![deny(unsafe_code)]` with `#![allow(unsafe_code)]` on the
-`sqlx::sqlite` module. There are several places where we interact with the C SQLite API. We try to document each call for the invariants we're assuming. We absolutely welcome auditing of, and feedback on, our unsafe code usage.
+`bk-sqlx::sqlite` module. There are several places where we interact with the C SQLite API. We try to document each call for the invariants we're assuming. We absolutely welcome auditing of, and feedback on, our unsafe code usage.
 
 ## License
 

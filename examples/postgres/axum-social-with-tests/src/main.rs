@@ -1,5 +1,5 @@
 use anyhow::Context;
-use sqlx::postgres::PgPoolOptions;
+use bk_sqlx::postgres::PgPoolOptions;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("failed to connect to DATABASE_URL")?;
 
-    sqlx::migrate!().run(&db).await?;
+    bk_sqlx::migrate!().run(&db).await?;
 
-    sqlx_example_postgres_axum_social::http::serve(db).await
+    bk_sqlx_example_postgres_axum_social::http::serve(db).await
 }

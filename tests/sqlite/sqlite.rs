@@ -1,20 +1,20 @@
 use futures::TryStreamExt;
 use rand::{Rng, SeedableRng};
 use rand_xoshiro::Xoshiro256PlusPlus;
-use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
-use sqlx::{
+use bk_sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use bk_sqlx::{
     query, sqlite::Sqlite, sqlite::SqliteRow, Column, ConnectOptions, Connection, Executor, Row,
     SqliteConnection, SqlitePool, Statement, TypeInfo,
 };
-use sqlx_test::new;
+use bk_sqlx_test::new;
 use std::sync::Arc;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_connects() -> anyhow::Result<()> {
     Ok(new::<Sqlite>().await?.ping().await?)
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_fetches_and_inflates_row() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -80,11 +80,11 @@ async fn it_fetches_and_inflates_row() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_maths() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let value = sqlx::query("select 1 + ?1")
+    let value = bk_sqlx::query("select 1 + ?1")
         .bind(5_i32)
         .try_map(|row: SqliteRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
@@ -95,11 +95,11 @@ async fn it_maths() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_bind_multiple_statements_multiple_values() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let values: Vec<i32> = sqlx::query_scalar::<_, i32>("select ?; select ?")
+    let values: Vec<i32> = bk_sqlx::query_scalar::<_, i32>("select ?; select ?")
         .bind(5_i32)
         .bind(15_i32)
         .fetch_all(&mut conn)
@@ -112,11 +112,11 @@ async fn test_bind_multiple_statements_multiple_values() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_bind_multiple_statements_same_value() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let values: Vec<i32> = sqlx::query_scalar::<_, i32>("select ?1; select ?1")
+    let values: Vec<i32> = bk_sqlx::query_scalar::<_, i32>("select ?1; select ?1")
         .bind(25_i32)
         .fetch_all(&mut conn)
         .await?;
@@ -128,18 +128,18 @@ async fn test_bind_multiple_statements_same_value() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_describe_with_pragma() -> anyhow::Result<()> {
-    use sqlx::{Decode, TypeInfo, ValueRef};
+    use bk_sqlx::{Decode, TypeInfo, ValueRef};
 
     let mut conn = new::<Sqlite>().await?;
 
-    let defaults = sqlx::query("pragma table_info (tweet)")
+    let defaults = bk_sqlx::query("pragma table_info (tweet)")
         .try_map(|row: SqliteRow| {
             let val = row.try_get_raw("dflt_value")?;
             let ty = val.type_info().clone().into_owned();
 
-            let val: Option<i32> = Decode::<Sqlite>::decode(val).map_err(sqlx::Error::Decode)?;
+            let val: Option<i32> = Decode::<Sqlite>::decode(val).map_err(bk_sqlx::Error::Decode)?;
 
             if val.is_some() {
                 assert_eq!(ty.name(), "TEXT");
@@ -156,11 +156,11 @@ async fn it_can_describe_with_pragma() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_binds_positional_parameters_issue_467() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let row: (i32, i32, i32, i32) = sqlx::query_as("select ?1, ?1, ?3, ?2")
+    let row: (i32, i32, i32, i32) = bk_sqlx::query_as("select ?1, ?1, ?3, ?2")
         .bind(5_i32)
         .bind(500_i32)
         .bind(1020_i32)
@@ -175,13 +175,13 @@ async fn it_binds_positional_parameters_issue_467() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_fetches_in_loop() -> anyhow::Result<()> {
     // this is trying to check for any data races
     // there were a few that triggered *sometimes* while building out StatementWorker
     for _ in 0..1000_usize {
         let mut conn = new::<Sqlite>().await?;
-        let v: Vec<(i32,)> = sqlx::query_as("SELECT 1").fetch_all(&mut conn).await?;
+        let v: Vec<(i32,)> = bk_sqlx::query_as("SELECT 1").fetch_all(&mut conn).await?;
 
         assert_eq!(v[0].0, 1);
     }
@@ -189,7 +189,7 @@ async fn it_fetches_in_loop() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_executes_with_pool() -> anyhow::Result<()> {
     let pool: SqlitePool = SqlitePoolOptions::new()
         .min_connections(2)
@@ -206,7 +206,7 @@ async fn it_executes_with_pool() -> anyhow::Result<()> {
 }
 
 #[cfg(sqlite_ipaddr)]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_opens_with_extension() -> anyhow::Result<()> {
     use std::str::FromStr;
 
@@ -220,7 +220,7 @@ async fn it_opens_with_extension() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_opens_in_memory() -> anyhow::Result<()> {
     // If the filename is ":memory:", then a private, temporary in-memory database
     // is created for the connection.
@@ -230,7 +230,7 @@ async fn it_opens_in_memory() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_opens_temp_on_disk() -> anyhow::Result<()> {
     // If the filename is an empty string, then a private, temporary on-disk database will
     // be created.
@@ -240,10 +240,10 @@ async fn it_opens_temp_on_disk() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_fails_to_parse() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
-    let res = sqlx::raw_sql("SEELCT 1").execute(&mut conn).await;
+    let res = bk_sqlx::raw_sql("SEELCT 1").execute(&mut conn).await;
 
     assert!(res.is_err());
 
@@ -257,7 +257,7 @@ async fn it_fails_to_parse() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_handles_empty_queries() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
     let done = conn.execute("").await?;
@@ -267,18 +267,18 @@ async fn it_handles_empty_queries() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 fn it_binds_parameters() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let v: i32 = sqlx::query_scalar("SELECT ?")
+    let v: i32 = bk_sqlx::query_scalar("SELECT ?")
         .bind(10_i32)
         .fetch_one(&mut conn)
         .await?;
 
     assert_eq!(v, 10);
 
-    let v: (i32, i32) = sqlx::query_as("SELECT ?1, ?")
+    let v: (i32, i32) = bk_sqlx::query_as("SELECT ?1, ?")
         .bind(10_i32)
         .fetch_one(&mut conn)
         .await?;
@@ -289,11 +289,11 @@ fn it_binds_parameters() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 fn it_binds_dollar_parameters() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
-    let v: (i32, i32) = sqlx::query_as("SELECT $1, $2")
+    let v: (i32, i32) = bk_sqlx::query_as("SELECT $1, $2")
         .bind(10_i32)
         .bind(11_i32)
         .fetch_one(&mut conn)
@@ -305,7 +305,7 @@ fn it_binds_dollar_parameters() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_executes_queries() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -318,7 +318,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY)
         .await?;
 
     for index in 1..=10_i32 {
-        let done = sqlx::query("INSERT INTO users (id) VALUES (?)")
+        let done = bk_sqlx::query("INSERT INTO users (id) VALUES (?)")
             .bind(index * 2)
             .execute(&mut conn)
             .await?;
@@ -326,7 +326,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY)
         assert_eq!(done.rows_affected(), 1);
     }
 
-    let sum: i32 = sqlx::query_as("SELECT id FROM users")
+    let sum: i32 = bk_sqlx::query_as("SELECT id FROM users")
         .fetch(&mut conn)
         .try_fold(0_i32, |acc, (x,): (i32,)| async move { Ok(acc + x) })
         .await?;
@@ -336,7 +336,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY)
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_execute_multiple_statements() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -352,7 +352,7 @@ INSERT INTO users DEFAULT VALUES;
     assert_eq!(done.rows_affected(), 1);
 
     for index in 2..5_i32 {
-        let (id, other): (i32, i32) = sqlx::query_as(
+        let (id, other): (i32, i32) = bk_sqlx::query_as(
             r#"
 INSERT INTO users (other) VALUES (?);
 SELECT id, other FROM users WHERE id = last_insert_rowid();
@@ -369,22 +369,22 @@ SELECT id, other FROM users WHERE id = last_insert_rowid();
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_interleaves_reads_and_writes() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
     let mut cursor = conn.fetch(
         "
-CREATE TABLE IF NOT EXISTS _sqlx_test (
+CREATE TABLE IF NOT EXISTS _bk_sqlx_test (
     id INT PRIMARY KEY,
     text TEXT NOT NULL
 );
 
 SELECT 'Hello World' as _1;
 
-INSERT INTO _sqlx_test (text) VALUES ('this is a test');
+INSERT INTO _bk_sqlx_test (text) VALUES ('this is a test');
 
-SELECT id, text FROM _sqlx_test;
+SELECT id, text FROM _bk_sqlx_test;
     ",
     );
 
@@ -403,7 +403,7 @@ SELECT id, text FROM _sqlx_test;
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_supports_collations() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -420,11 +420,11 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL COLLATE
         )
         .await?;
 
-    sqlx::query("INSERT INTO users (name) VALUES (?)")
+    bk_sqlx::query("INSERT INTO users (name) VALUES (?)")
         .bind("a")
         .execute(&mut conn)
         .await?;
-    sqlx::query("INSERT INTO users (name) VALUES (?)")
+    bk_sqlx::query("INSERT INTO users (name) VALUES (?)")
         .bind("b")
         .execute(&mut conn)
         .await?;
@@ -439,7 +439,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL COLLATE
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_caches_statements() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -456,7 +456,7 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     // `Query` is persistent by default.
     let mut conn = new::<Sqlite>().await?;
     for i in 0..2 {
-        let row = sqlx::query("SELECT ? AS val")
+        let row = bk_sqlx::query("SELECT ? AS val")
             .bind(i)
             .fetch_one(&mut conn)
             .await?;
@@ -475,7 +475,7 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     // explicitly.
     let mut conn = new::<Sqlite>().await?;
     for i in 0..2 {
-        let row = sqlx::query("SELECT ? AS val")
+        let row = bk_sqlx::query("SELECT ? AS val")
             .bind(i)
             .persistent(false)
             .fetch_one(&mut conn)
@@ -490,12 +490,12 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_prepare_then_execute() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
     let mut tx = conn.begin().await?;
 
-    let _ = sqlx::query("INSERT INTO tweet ( id, text ) VALUES ( 2, 'Hello, World' )")
+    let _ = bk_sqlx::query("INSERT INTO tweet ( id, text ) VALUES ( 2, 'Hello, World' )")
         .execute(&mut *tx)
         .await?;
 
@@ -521,7 +521,7 @@ async fn it_can_prepare_then_execute() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_resets_prepared_statement_after_fetch_one() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -529,7 +529,7 @@ async fn it_resets_prepared_statement_after_fetch_one() -> anyhow::Result<()> {
         .await?;
     conn.execute("INSERT INTO foobar VALUES (42)").await?;
 
-    let r = sqlx::query("SELECT id FROM foobar")
+    let r = bk_sqlx::query("SELECT id FROM foobar")
         .fetch_one(&mut conn)
         .await?;
     let x: i32 = r.try_get("id")?;
@@ -540,7 +540,7 @@ async fn it_resets_prepared_statement_after_fetch_one() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_resets_prepared_statement_after_fetch_many() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -549,7 +549,7 @@ async fn it_resets_prepared_statement_after_fetch_many() -> anyhow::Result<()> {
     conn.execute("INSERT INTO foobar VALUES (42)").await?;
     conn.execute("INSERT INTO foobar VALUES (43)").await?;
 
-    let mut rows = sqlx::query("SELECT id FROM foobar").fetch(&mut conn);
+    let mut rows = bk_sqlx::query("SELECT id FROM foobar").fetch(&mut conn);
     let row = rows.try_next().await?.unwrap();
     let x: i32 = row.try_get("id")?;
     assert_eq!(x, 42);
@@ -560,10 +560,10 @@ async fn it_resets_prepared_statement_after_fetch_many() -> anyhow::Result<()> {
     Ok(())
 }
 
-// https://github.com/launchbadge/sqlx/issues/1300
-#[sqlx_macros::test]
+// https://github.com/launchbadge/bk_sqlx/issues/1300
+#[bk_sqlx_macros::test]
 async fn concurrent_resets_dont_segfault() {
-    use sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
+    use bk_sqlx::{sqlite::SqliteConnectOptions, ConnectOptions};
     use std::{str::FromStr, time::Duration};
 
     let mut conn = SqliteConnectOptions::from_str(":memory:")
@@ -572,14 +572,14 @@ async fn concurrent_resets_dont_segfault() {
         .await
         .unwrap();
 
-    sqlx::query("CREATE TABLE stuff (name INTEGER, value INTEGER)")
+    bk_sqlx::query("CREATE TABLE stuff (name INTEGER, value INTEGER)")
         .execute(&mut conn)
         .await
         .unwrap();
 
-    sqlx_core::rt::spawn(async move {
+    bk_sqlx_core::rt::spawn(async move {
         for i in 0..1000 {
-            sqlx::query("INSERT INTO stuff (name, value) VALUES (?, ?)")
+            bk_sqlx::query("INSERT INTO stuff (name, value) VALUES (?, ?)")
                 .bind(i)
                 .bind(0)
                 .execute(&mut conn)
@@ -588,17 +588,17 @@ async fn concurrent_resets_dont_segfault() {
         }
     });
 
-    sqlx_core::rt::sleep(Duration::from_millis(1)).await;
+    bk_sqlx_core::rt::sleep(Duration::from_millis(1)).await;
 }
 
-// https://github.com/launchbadge/sqlx/issues/1419
+// https://github.com/launchbadge/bk_sqlx/issues/1419
 // note: this passes before and after the fix; you need to run it with `--nocapture`
 // to see the panic from the worker thread, which doesn't happen after the fix
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn row_dropped_after_connection_doesnt_panic() {
     let mut conn = SqliteConnection::connect(":memory:").await.unwrap();
 
-    let books = sqlx::query("SELECT 'hello' AS title")
+    let books = bk_sqlx::query("SELECT 'hello' AS title")
         .fetch_all(&mut conn)
         .await
         .unwrap();
@@ -610,7 +610,7 @@ async fn row_dropped_after_connection_doesnt_panic() {
 
     // hold `books` past the lifetime of `conn`
     drop(conn);
-    sqlx_core::rt::sleep(std::time::Duration::from_secs(1)).await;
+    bk_sqlx_core::rt::sleep(std::time::Duration::from_secs(1)).await;
     drop(books);
 }
 
@@ -618,7 +618,7 @@ async fn row_dropped_after_connection_doesnt_panic() {
 // May spuriously fail with UNIQUE constraint failures (which aren't relevant to the original issue)
 // which I have tried to reproduce using the same seed as printed from CI but to no avail.
 // It may be due to some nondeterminism in SQLite itself for all I know.
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 #[ignore]
 async fn issue_1467() -> anyhow::Result<()> {
     let mut conn = SqliteConnectOptions::new()
@@ -626,7 +626,7 @@ async fn issue_1467() -> anyhow::Result<()> {
         .connect()
         .await?;
 
-    sqlx::query(
+    bk_sqlx::query(
         r#"
     CREATE TABLE kv (k PRIMARY KEY, v);
     CREATE INDEX idx_kv ON kv (v);
@@ -657,18 +657,18 @@ async fn issue_1467() -> anyhow::Result<()> {
         let value = rng.gen_range(0..1_000);
         let mut tx = conn.begin().await?;
 
-        let exists = sqlx::query("SELECT 1 FROM kv WHERE k = ?")
+        let exists = bk_sqlx::query("SELECT 1 FROM kv WHERE k = ?")
             .bind(key)
             .fetch_optional(&mut *tx)
             .await?;
         if exists.is_some() {
-            sqlx::query("UPDATE kv SET v = ? WHERE k = ?")
+            bk_sqlx::query("UPDATE kv SET v = ? WHERE k = ?")
                 .bind(value)
                 .bind(key)
                 .execute(&mut *tx)
                 .await?;
         } else {
-            sqlx::query("INSERT INTO kv(k, v) VALUES (?, ?)")
+            bk_sqlx::query("INSERT INTO kv(k, v) VALUES (?, ?)")
                 .bind(key)
                 .bind(value)
                 .execute(&mut *tx)
@@ -679,7 +679,7 @@ async fn issue_1467() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn concurrent_read_and_write() {
     let pool: SqlitePool = SqlitePoolOptions::new()
         .min_connections(2)
@@ -687,19 +687,19 @@ async fn concurrent_read_and_write() {
         .await
         .unwrap();
 
-    sqlx::query("CREATE TABLE kv (k PRIMARY KEY, v)")
+    bk_sqlx::query("CREATE TABLE kv (k PRIMARY KEY, v)")
         .execute(&pool)
         .await
         .unwrap();
 
     let n = 100;
 
-    let read = sqlx_core::rt::spawn({
+    let read = bk_sqlx_core::rt::spawn({
         let mut conn = pool.acquire().await.unwrap();
 
         async move {
             for i in 0u32..n {
-                sqlx::query("SELECT v FROM kv")
+                bk_sqlx::query("SELECT v FROM kv")
                     .bind(i)
                     .fetch_all(&mut *conn)
                     .await
@@ -708,12 +708,12 @@ async fn concurrent_read_and_write() {
         }
     });
 
-    let write = sqlx_core::rt::spawn({
+    let write = bk_sqlx_core::rt::spawn({
         let mut conn = pool.acquire().await.unwrap();
 
         async move {
             for i in 0u32..n {
-                sqlx::query("INSERT INTO kv (k, v) VALUES (?, ?)")
+                bk_sqlx::query("INSERT INTO kv (k, v) VALUES (?, ?)")
                     .bind(i)
                     .bind(i * i)
                     .execute(&mut *conn)
@@ -727,7 +727,7 @@ async fn concurrent_read_and_write() {
     write.await;
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_query_with_progress_handler() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -738,18 +738,18 @@ async fn test_query_with_progress_handler() -> anyhow::Result<()> {
         false
     });
 
-    match sqlx::query("SELECT 'hello' AS title")
+    match bk_sqlx::query("SELECT 'hello' AS title")
         .fetch_all(&mut conn)
         .await
     {
-        Err(sqlx::Error::Database(err)) => assert_eq!(err.message(), String::from("interrupted")),
+        Err(bk_sqlx::Error::Database(err)) => assert_eq!(err.message(), String::from("interrupted")),
         _ => panic!("expected an interrupt"),
     }
 
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_multiple_set_progress_handler_calls_drop_old_handler() -> anyhow::Result<()> {
     let ref_counted_object = Arc::new(0);
     assert_eq!(1, Arc::strong_count(&ref_counted_object));
@@ -778,11 +778,11 @@ async fn test_multiple_set_progress_handler_calls_drop_old_handler() -> anyhow::
         });
         assert_eq!(2, Arc::strong_count(&ref_counted_object));
 
-        match sqlx::query("SELECT 'hello' AS title")
+        match bk_sqlx::query("SELECT 'hello' AS title")
             .fetch_all(&mut conn)
             .await
         {
-            Err(sqlx::Error::Database(err)) => {
+            Err(bk_sqlx::Error::Database(err)) => {
                 assert_eq!(err.message(), String::from("interrupted"))
             }
             _ => panic!("expected an interrupt"),

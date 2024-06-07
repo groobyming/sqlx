@@ -1,14 +1,14 @@
-use sqlx::any::{AnyConnectOptions, AnyPoolOptions};
-use sqlx::Executor;
+use bk_sqlx::any::{AnyConnectOptions, AnyPoolOptions};
+use bk_sqlx::Executor;
 use std::sync::{
     atomic::{AtomicI32, AtomicUsize, Ordering},
     Arc, Mutex,
 };
 use std::time::Duration;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn pool_should_invoke_after_connect() -> anyhow::Result<()> {
-    sqlx::any::install_default_drivers();
+    bk_sqlx::any::install_default_drivers();
 
     let counter = Arc::new(AtomicUsize::new(0));
 
@@ -39,10 +39,10 @@ async fn pool_should_invoke_after_connect() -> anyhow::Result<()> {
     Ok(())
 }
 
-// https://github.com/launchbadge/sqlx/issues/527
-#[sqlx_macros::test]
+// https://github.com/launchbadge/bk_sqlx/issues/527
+#[bk_sqlx_macros::test]
 async fn pool_should_be_returned_failed_transactions() -> anyhow::Result<()> {
-    sqlx::any::install_default_drivers();
+    bk_sqlx::any::install_default_drivers();
 
     let pool = AnyPoolOptions::new()
         .max_connections(2)
@@ -53,40 +53,40 @@ async fn pool_should_be_returned_failed_transactions() -> anyhow::Result<()> {
     let query = "blah blah";
 
     let mut tx = pool.begin().await?;
-    let res = sqlx::query(query).execute(&mut *tx).await;
+    let res = bk_sqlx::query(query).execute(&mut *tx).await;
     assert!(res.is_err());
     drop(tx);
 
     let mut tx = pool.begin().await?;
-    let res = sqlx::query(query).execute(&mut *tx).await;
+    let res = bk_sqlx::query(query).execute(&mut *tx).await;
     assert!(res.is_err());
     drop(tx);
 
     let mut tx = pool.begin().await?;
-    let res = sqlx::query(query).execute(&mut *tx).await;
+    let res = bk_sqlx::query(query).execute(&mut *tx).await;
     assert!(res.is_err());
     drop(tx);
 
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_pool_callbacks() -> anyhow::Result<()> {
-    sqlx::any::install_default_drivers();
+    bk_sqlx::any::install_default_drivers();
 
-    #[derive(sqlx::FromRow, Debug, PartialEq, Eq)]
+    #[derive(bk_sqlx::FromRow, Debug, PartialEq, Eq)]
     struct ConnStats {
         id: i32,
         before_acquire_calls: i32,
         after_release_calls: i32,
     }
 
-    sqlx_test::setup_if_needed();
+    bk_sqlx_test::setup_if_needed();
 
     let conn_options: AnyConnectOptions = std::env::var("DATABASE_URL")?.parse()?;
 
     #[cfg(feature = "mssql")]
-    if conn_options.kind() == sqlx::any::AnyKind::Mssql {
+    if conn_options.kind() == bk_sqlx::any::AnyKind::Mssql {
         // MSSQL doesn't support `CREATE TEMPORARY TABLE`,
         // because why follow conventions when you can subvert them?
         // Instead, you prepend `#` to the table name for a session-local temporary table
@@ -134,7 +134,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
 
             Box::pin(async move {
                 // MySQL and MariaDB don't support UPDATE ... RETURNING
-                sqlx::query(
+                bk_sqlx::query(
                     r#"
                         UPDATE conn_stats
                         SET before_acquire_calls = before_acquire_calls + 1
@@ -143,7 +143,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
                 .execute(&mut *conn)
                 .await?;
 
-                let stats: ConnStats = sqlx::query_as("SELECT * FROM conn_stats")
+                let stats: ConnStats = bk_sqlx::query_as("SELECT * FROM conn_stats")
                     .fetch_one(conn)
                     .await?;
 
@@ -158,7 +158,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
             assert_eq!(meta.idle_for, Duration::ZERO);
 
             Box::pin(async move {
-                sqlx::query(
+                bk_sqlx::query(
                     r#"
                         UPDATE conn_stats
                         SET after_release_calls = after_release_calls + 1
@@ -167,7 +167,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
                 .execute(&mut *conn)
                 .await?;
 
-                let stats: ConnStats = sqlx::query_as("SELECT * FROM conn_stats")
+                let stats: ConnStats = bk_sqlx::query_as("SELECT * FROM conn_stats")
                     .fetch_one(conn)
                     .await?;
 
@@ -197,7 +197,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
     ];
 
     for (id, before_acquire_calls, after_release_calls) in pattern {
-        let conn_stats: ConnStats = sqlx::query_as("SELECT * FROM conn_stats")
+        let conn_stats: ConnStats = bk_sqlx::query_as("SELECT * FROM conn_stats")
             .fetch_one(&pool)
             .await?;
 
@@ -216,10 +216,10 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_connection_maintenance() -> anyhow::Result<()> {
-    sqlx::any::install_default_drivers();
-    sqlx_test::setup_if_needed();
+    bk_sqlx::any::install_default_drivers();
+    bk_sqlx_test::setup_if_needed();
     let conn_options: AnyConnectOptions = std::env::var("DATABASE_URL")?.parse()?;
 
     let last_meta = Arc::new(Mutex::new(None));
@@ -251,7 +251,7 @@ async fn test_connection_maintenance() -> anyhow::Result<()> {
     assert_eq!(pool.num_idle(), 5);
 
     // Wait for at least two iterations of maintenance task
-    sqlx_core::rt::sleep(Duration::from_secs(1)).await;
+    bk_sqlx_core::rt::sleep(Duration::from_secs(1)).await;
 
     // Existing connections should have been closed due to max lifetime
     // and the pool should have reopened min_connections new ones.

@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use futures::TryStreamExt;
-use sqlx::postgres::PgListener;
-use sqlx::{Executor, PgPool};
+use bk_sqlx::postgres::PgListener;
+use bk_sqlx::{Executor, PgPool};
 use std::pin;
 use std::pin::pin;
 use std::sync::atomic::{AtomicI64, Ordering};
@@ -17,7 +17,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Building PG pool.");
     let conn_str =
         std::env::var("DATABASE_URL").expect("Env var DATABASE_URL is required for this example.");
-    let pool = sqlx::PgPool::connect(&conn_str).await?;
+    let pool = bk_sqlx::PgPool::connect(&conn_str).await?;
 
     let mut listener = PgListener::connect_with(&pool).await?;
 
@@ -89,7 +89,7 @@ async fn notify(pool: &PgPool) {
     // We recommend #2 for consistency and usability.
 
     // language=PostgreSQL
-    let res = sqlx::query(
+    let res = bk_sqlx::query(
         r#"
 -- this emits '{ "payload": N }' as the actual payload
 select pg_notify(chan, json_build_object('payload', payload)::text)

@@ -521,6 +521,410 @@ dependencies = [
 ]
 
 [[package]]
+name = "bk-sqlx"
+version = "0.7.4"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "bk-sqlx-core",
+ "bk-sqlx-macros",
+ "bk-sqlx-mysql",
+ "bk-sqlx-postgres",
+ "bk-sqlx-sqlite",
+ "bk-sqlx-test",
+ "criterion",
+ "dotenvy",
+ "env_logger",
+ "futures",
+ "hex",
+ "libsqlite3-sys",
+ "paste",
+ "rand",
+ "rand_xoshiro",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "time",
+ "tokio",
+ "trybuild",
+ "url",
+]
+
+[[package]]
+name = "bk-sqlx-cli"
+version = "0.7.4"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "async-trait",
+ "backoff",
+ "bk-sqlx",
+ "cargo_metadata",
+ "chrono",
+ "clap 4.5.6",
+ "clap_complete",
+ "console",
+ "dotenvy",
+ "filetime",
+ "futures",
+ "glob",
+ "openssl",
+ "promptly",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "bk-sqlx-core"
+version = "0.7.4"
+dependencies = [
+ "ahash 0.8.11",
+ "async-io 1.13.0",
+ "async-std",
+ "atoi",
+ "bigdecimal",
+ "bit-vec",
+ "bk-sqlx",
+ "bstr",
+ "byteorder",
+ "bytes",
+ "chrono",
+ "crc",
+ "crossbeam-queue",
+ "digest",
+ "either",
+ "encoding_rs",
+ "event-listener 2.5.3",
+ "futures-channel",
+ "futures-core",
+ "futures-intrusive",
+ "futures-io",
+ "futures-util",
+ "hashlink",
+ "hex",
+ "indexmap 2.2.6",
+ "ipnetwork",
+ "log",
+ "mac_address",
+ "memchr",
+ "native-tls",
+ "num-bigint",
+ "once_cell",
+ "paste",
+ "percent-encoding",
+ "regex",
+ "rust_decimal",
+ "rustls",
+ "rustls-pemfile",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "smallvec",
+ "sqlformat",
+ "thiserror",
+ "time",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "url",
+ "uuid",
+ "webpki-roots",
+]
+
+[[package]]
+name = "bk-sqlx-example-mysql-todos"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bk-sqlx",
+ "futures",
+ "structopt",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-axum-social"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argon2",
+ "axum",
+ "bk-sqlx",
+ "dotenvy",
+ "once_cell",
+ "rand",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "thiserror",
+ "time",
+ "tokio",
+ "tower",
+ "tracing",
+ "uuid",
+ "validator",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-chat"
+version = "0.1.0"
+dependencies = [
+ "bk-sqlx",
+ "crossterm",
+ "futures",
+ "tokio",
+ "tui",
+ "unicode-width",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-files"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bk-sqlx",
+ "dotenvy",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-json"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bk-sqlx",
+ "dotenvy",
+ "futures",
+ "serde",
+ "serde_json",
+ "structopt",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-listen"
+version = "0.1.0"
+dependencies = [
+ "bk-sqlx",
+ "futures",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-mockable-todos"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bk-sqlx",
+ "dotenvy",
+ "futures",
+ "mockall",
+ "structopt",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-todos"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bk-sqlx",
+ "dotenvy",
+ "futures",
+ "structopt",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-example-postgres-transaction"
+version = "0.1.0"
+dependencies = [
+ "bk-sqlx",
+ "futures",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-example-sqlite-todos"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bk-sqlx",
+ "futures",
+ "structopt",
+ "tokio",
+]
+
+[[package]]
+name = "bk-sqlx-macros"
+version = "0.7.4"
+dependencies = [
+ "bk-sqlx-core",
+ "bk-sqlx-macros-core",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "bk-sqlx-macros-core"
+version = "0.7.4"
+dependencies = [
+ "async-std",
+ "bk-sqlx-core",
+ "bk-sqlx-mysql",
+ "bk-sqlx-postgres",
+ "bk-sqlx-sqlite",
+ "dotenvy",
+ "either",
+ "heck 0.4.1",
+ "hex",
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "sha2",
+ "syn 1.0.109",
+ "tempfile",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "bk-sqlx-mysql"
+version = "0.7.4"
+dependencies = [
+ "atoi",
+ "base64 0.21.7",
+ "bigdecimal",
+ "bitflags 2.5.0",
+ "bk-sqlx-core",
+ "byteorder",
+ "bytes",
+ "chrono",
+ "crc",
+ "digest",
+ "dotenvy",
+ "either",
+ "futures-channel",
+ "futures-core",
+ "futures-io",
+ "futures-util",
+ "generic-array",
+ "hex",
+ "hkdf",
+ "hmac",
+ "itoa",
+ "log",
+ "md-5",
+ "memchr",
+ "once_cell",
+ "percent-encoding",
+ "rand",
+ "rsa",
+ "rust_decimal",
+ "serde",
+ "sha1",
+ "sha2",
+ "smallvec",
+ "stringprep",
+ "thiserror",
+ "time",
+ "tracing",
+ "uuid",
+ "whoami",
+]
+
+[[package]]
+name = "bk-sqlx-postgres"
+version = "0.7.4"
+dependencies = [
+ "atoi",
+ "base64 0.21.7",
+ "bigdecimal",
+ "bit-vec",
+ "bitflags 2.5.0",
+ "bk-sqlx-core",
+ "byteorder",
+ "chrono",
+ "crc",
+ "dotenvy",
+ "etcetera",
+ "futures-channel",
+ "futures-core",
+ "futures-io",
+ "futures-util",
+ "hex",
+ "hkdf",
+ "hmac",
+ "home",
+ "ipnetwork",
+ "itoa",
+ "log",
+ "mac_address",
+ "md-5",
+ "memchr",
+ "num-bigint",
+ "once_cell",
+ "rand",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "sha2",
+ "smallvec",
+ "stringprep",
+ "thiserror",
+ "time",
+ "tracing",
+ "uuid",
+ "whoami",
+]
+
+[[package]]
+name = "bk-sqlx-sqlite"
+version = "0.7.4"
+dependencies = [
+ "atoi",
+ "bk-sqlx",
+ "bk-sqlx-core",
+ "chrono",
+ "flume",
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-intrusive",
+ "futures-util",
+ "libsqlite3-sys",
+ "log",
+ "percent-encoding",
+ "regex",
+ "serde",
+ "time",
+ "tracing",
+ "url",
+ "urlencoding",
+ "uuid",
+]
+
+[[package]]
+name = "bk-sqlx-test"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "bk-sqlx",
+ "dotenvy",
+ "env_logger",
+ "tokio",
+]
+
+[[package]]
 name = "blake2"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3167,410 +3571,6 @@ dependencies = [
  "itertools 0.12.1",
  "nom",
  "unicode_categories",
-]
-
-[[package]]
-name = "sqlx"
-version = "0.7.4"
-dependencies = [
- "anyhow",
- "async-std",
- "criterion",
- "dotenvy",
- "env_logger",
- "futures",
- "hex",
- "libsqlite3-sys",
- "paste",
- "rand",
- "rand_xoshiro",
- "serde",
- "serde_json",
- "sqlx-core",
- "sqlx-macros",
- "sqlx-mysql",
- "sqlx-postgres",
- "sqlx-sqlite",
- "sqlx-test",
- "tempfile",
- "time",
- "tokio",
- "trybuild",
- "url",
-]
-
-[[package]]
-name = "sqlx-cli"
-version = "0.7.4"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "async-trait",
- "backoff",
- "cargo_metadata",
- "chrono",
- "clap 4.5.6",
- "clap_complete",
- "console",
- "dotenvy",
- "filetime",
- "futures",
- "glob",
- "openssl",
- "promptly",
- "serde",
- "serde_json",
- "sqlx",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "sqlx-core"
-version = "0.7.4"
-dependencies = [
- "ahash 0.8.11",
- "async-io 1.13.0",
- "async-std",
- "atoi",
- "bigdecimal",
- "bit-vec",
- "bstr",
- "byteorder",
- "bytes",
- "chrono",
- "crc",
- "crossbeam-queue",
- "digest",
- "either",
- "encoding_rs",
- "event-listener 2.5.3",
- "futures-channel",
- "futures-core",
- "futures-intrusive",
- "futures-io",
- "futures-util",
- "hashlink",
- "hex",
- "indexmap 2.2.6",
- "ipnetwork",
- "log",
- "mac_address",
- "memchr",
- "native-tls",
- "num-bigint",
- "once_cell",
- "paste",
- "percent-encoding",
- "regex",
- "rust_decimal",
- "rustls",
- "rustls-pemfile",
- "serde",
- "serde_json",
- "sha1",
- "sha2",
- "smallvec",
- "sqlformat",
- "sqlx",
- "thiserror",
- "time",
- "tokio",
- "tokio-stream",
- "tracing",
- "url",
- "uuid",
- "webpki-roots",
-]
-
-[[package]]
-name = "sqlx-example-mysql-todos"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures",
- "sqlx",
- "structopt",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-example-postgres-axum-social"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argon2",
- "axum",
- "dotenvy",
- "once_cell",
- "rand",
- "regex",
- "serde",
- "serde_json",
- "serde_with",
- "sqlx",
- "thiserror",
- "time",
- "tokio",
- "tower",
- "tracing",
- "uuid",
- "validator",
-]
-
-[[package]]
-name = "sqlx-example-postgres-chat"
-version = "0.1.0"
-dependencies = [
- "crossterm",
- "futures",
- "sqlx",
- "tokio",
- "tui",
- "unicode-width",
-]
-
-[[package]]
-name = "sqlx-example-postgres-files"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dotenvy",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-example-postgres-json"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dotenvy",
- "futures",
- "serde",
- "serde_json",
- "sqlx",
- "structopt",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-example-postgres-listen"
-version = "0.1.0"
-dependencies = [
- "futures",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-example-postgres-mockable-todos"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "dotenvy",
- "futures",
- "mockall",
- "sqlx",
- "structopt",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-example-postgres-todos"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "dotenvy",
- "futures",
- "sqlx",
- "structopt",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-example-postgres-transaction"
-version = "0.1.0"
-dependencies = [
- "futures",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-example-sqlite-todos"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "futures",
- "sqlx",
- "structopt",
- "tokio",
-]
-
-[[package]]
-name = "sqlx-macros"
-version = "0.7.4"
-dependencies = [
- "proc-macro2",
- "quote",
- "sqlx-core",
- "sqlx-macros-core",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "sqlx-macros-core"
-version = "0.7.4"
-dependencies = [
- "async-std",
- "dotenvy",
- "either",
- "heck 0.4.1",
- "hex",
- "once_cell",
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "sha2",
- "sqlx-core",
- "sqlx-mysql",
- "sqlx-postgres",
- "sqlx-sqlite",
- "syn 1.0.109",
- "tempfile",
- "tokio",
- "url",
-]
-
-[[package]]
-name = "sqlx-mysql"
-version = "0.7.4"
-dependencies = [
- "atoi",
- "base64 0.21.7",
- "bigdecimal",
- "bitflags 2.5.0",
- "byteorder",
- "bytes",
- "chrono",
- "crc",
- "digest",
- "dotenvy",
- "either",
- "futures-channel",
- "futures-core",
- "futures-io",
- "futures-util",
- "generic-array",
- "hex",
- "hkdf",
- "hmac",
- "itoa",
- "log",
- "md-5",
- "memchr",
- "once_cell",
- "percent-encoding",
- "rand",
- "rsa",
- "rust_decimal",
- "serde",
- "sha1",
- "sha2",
- "smallvec",
- "sqlx-core",
- "stringprep",
- "thiserror",
- "time",
- "tracing",
- "uuid",
- "whoami",
-]
-
-[[package]]
-name = "sqlx-postgres"
-version = "0.7.4"
-dependencies = [
- "atoi",
- "base64 0.21.7",
- "bigdecimal",
- "bit-vec",
- "bitflags 2.5.0",
- "byteorder",
- "chrono",
- "crc",
- "dotenvy",
- "etcetera",
- "futures-channel",
- "futures-core",
- "futures-io",
- "futures-util",
- "hex",
- "hkdf",
- "hmac",
- "home",
- "ipnetwork",
- "itoa",
- "log",
- "mac_address",
- "md-5",
- "memchr",
- "num-bigint",
- "once_cell",
- "rand",
- "rust_decimal",
- "serde",
- "serde_json",
- "sha2",
- "smallvec",
- "sqlx-core",
- "stringprep",
- "thiserror",
- "time",
- "tracing",
- "uuid",
- "whoami",
-]
-
-[[package]]
-name = "sqlx-sqlite"
-version = "0.7.4"
-dependencies = [
- "atoi",
- "chrono",
- "flume",
- "futures-channel",
- "futures-core",
- "futures-executor",
- "futures-intrusive",
- "futures-util",
- "libsqlite3-sys",
- "log",
- "percent-encoding",
- "regex",
- "serde",
- "sqlx",
- "sqlx-core",
- "time",
- "tracing",
- "url",
- "urlencoding",
- "uuid",
-]
-
-[[package]]
-name = "sqlx-test"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-std",
- "dotenvy",
- "env_logger",
- "sqlx",
- "tokio",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-This example demonstrates how to write integration tests for an API build with [Axum] and SQLx using `#[sqlx::test]`.
+This example demonstrates how to write integration tests for an API build with [Axum] and SQLx using `#[bk-sqlx::test]`.
 
 See also: https://github.com/tokio-rs/axum/blob/main/examples/testing
 

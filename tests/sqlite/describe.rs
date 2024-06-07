@@ -1,12 +1,12 @@
-use sqlx::error::DatabaseError;
-use sqlx::sqlite::{SqliteConnectOptions, SqliteError};
-use sqlx::ConnectOptions;
-use sqlx::TypeInfo;
-use sqlx::{sqlite::Sqlite, Column, Executor};
-use sqlx_test::new;
+use bk_sqlx::error::DatabaseError;
+use bk_sqlx::sqlite::{SqliteConnectOptions, SqliteError};
+use bk_sqlx::ConnectOptions;
+use bk_sqlx::TypeInfo;
+use bk_sqlx::{sqlite::Sqlite, Column, Executor};
+use bk_sqlx_test::new;
 use std::env;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_simple() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -36,7 +36,7 @@ async fn it_describes_simple() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_variables() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -55,7 +55,7 @@ async fn it_describes_variables() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_expression() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -88,7 +88,7 @@ async fn it_describes_expression() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_temporary_table() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -138,7 +138,7 @@ async fn it_describes_temporary_table() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_expression_from_empty_table() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -167,7 +167,7 @@ async fn it_describes_expression_from_empty_table() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_expression_from_empty_table_with_star() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -186,7 +186,7 @@ async fn it_describes_expression_from_empty_table_with_star() -> anyhow::Result<
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_insert() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -207,9 +207,9 @@ async fn it_describes_insert() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_insert_with_read_only() -> anyhow::Result<()> {
-    sqlx_test::setup_if_needed();
+    bk_sqlx_test::setup_if_needed();
 
     let mut options: SqliteConnectOptions = env::var("DATABASE_URL")?.parse().unwrap();
     options = options.read_only(true);
@@ -225,7 +225,7 @@ async fn it_describes_insert_with_read_only() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_insert_with_returning() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -250,7 +250,7 @@ async fn it_describes_insert_with_returning() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_bound_columns_non_null() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
     let d = conn
@@ -266,7 +266,7 @@ async fn it_describes_bound_columns_non_null() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_update_with_returning() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -281,7 +281,7 @@ async fn it_describes_update_with_returning() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_delete_with_returning() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -296,7 +296,7 @@ async fn it_describes_delete_with_returning() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_bad_statement() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -312,7 +312,7 @@ async fn it_describes_bad_statement() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_left_join() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -367,7 +367,7 @@ async fn it_describes_left_join() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_group_by() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -392,7 +392,7 @@ async fn it_describes_group_by() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_ungrouped_aggregate() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -413,10 +413,10 @@ async fn it_describes_ungrouped_aggregate() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_literal_subquery() -> anyhow::Result<()> {
     async fn assert_literal_described(
-        conn: &mut sqlx::SqliteConnection,
+        conn: &mut bk_sqlx::SqliteConnection,
         query: &str,
     ) -> anyhow::Result<()> {
         let info = conn.describe(query).await?;
@@ -452,7 +452,7 @@ async fn it_describes_literal_subquery() -> anyhow::Result<()> {
 }
 
 async fn assert_tweet_described(
-    conn: &mut sqlx::SqliteConnection,
+    conn: &mut bk_sqlx::SqliteConnection,
     query: &str,
 ) -> anyhow::Result<()> {
     let info = conn.describe(query).await?;
@@ -481,7 +481,7 @@ async fn assert_tweet_described(
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_table_subquery() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
     assert_tweet_described(&mut conn, "SELECT * FROM tweet").await?;
@@ -500,7 +500,7 @@ async fn it_describes_table_subquery() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_table_order_by() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
     assert_tweet_described(&mut conn, "SELECT * FROM tweet ORDER BY id").await?;
@@ -512,7 +512,7 @@ async fn it_describes_table_order_by() -> anyhow::Result<()> {
     .await?;
 
     async fn assert_literal_order_by_described(
-        conn: &mut sqlx::SqliteConnection,
+        conn: &mut bk_sqlx::SqliteConnection,
         query: &str,
     ) -> anyhow::Result<()> {
         let info = conn.describe(query).await?;
@@ -547,10 +547,10 @@ async fn it_describes_table_order_by() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_union() -> anyhow::Result<()> {
     async fn assert_union_described(
-        conn: &mut sqlx::SqliteConnection,
+        conn: &mut bk_sqlx::SqliteConnection,
         query: &str,
     ) -> anyhow::Result<()> {
         let info = conn.describe(query).await?;
@@ -593,10 +593,10 @@ async fn it_describes_union() -> anyhow::Result<()> {
 }
 
 //documents failures originally found through property testing
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_strange_queries() -> anyhow::Result<()> {
     async fn assert_single_column_described(
-        conn: &mut sqlx::SqliteConnection,
+        conn: &mut bk_sqlx::SqliteConnection,
         query: &str,
         typename: &str,
         nullable: bool,
@@ -698,7 +698,7 @@ async fn it_describes_strange_queries() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_func_date() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -724,7 +724,7 @@ async fn it_describes_func_date() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_func_time() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -750,7 +750,7 @@ async fn it_describes_func_time() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_func_datetime() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -776,7 +776,7 @@ async fn it_describes_func_datetime() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_func_julianday() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -802,7 +802,7 @@ async fn it_describes_func_julianday() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_func_strftime() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -823,7 +823,7 @@ async fn it_describes_func_strftime() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_with_recursive() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 
@@ -866,7 +866,7 @@ async fn it_describes_with_recursive() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_analytical_function() -> anyhow::Result<()> {
     let mut conn = new::<Sqlite>().await?;
 

@@ -1,11 +1,11 @@
-use sqlx::migrate::Migrator;
-use sqlx::pool::PoolConnection;
-use sqlx::sqlite::{Sqlite, SqliteConnection};
-use sqlx::Executor;
-use sqlx::Row;
+use bk_sqlx::migrate::Migrator;
+use bk_sqlx::pool::PoolConnection;
+use bk_sqlx::sqlite::{Sqlite, SqliteConnection};
+use bk_sqlx::Executor;
+use bk_sqlx::Row;
 use std::path::Path;
 
-#[sqlx::test(migrations = false)]
+#[bk_sqlx::test(migrations = false)]
 async fn simple(mut conn: PoolConnection<Sqlite>) -> anyhow::Result<()> {
     clean_up(&mut conn).await?;
 
@@ -27,7 +27,7 @@ async fn simple(mut conn: PoolConnection<Sqlite>) -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx::test(migrations = false)]
+#[bk_sqlx::test(migrations = false)]
 async fn reversible(mut conn: PoolConnection<Sqlite>) -> anyhow::Result<()> {
     clean_up(&mut conn).await?;
 
@@ -72,7 +72,7 @@ async fn clean_up(conn: &mut SqliteConnection) -> anyhow::Result<()> {
     conn.execute("DROP TABLE migrations_reversible_test")
         .await
         .ok();
-    conn.execute("DROP TABLE _sqlx_migrations").await.ok();
+    conn.execute("DROP TABLE _bk_sqlx_migrations").await.ok();
 
     Ok(())
 }

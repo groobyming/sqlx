@@ -4,7 +4,7 @@ import sys
 import os
 from os import path
 
-# base dir of sqlx workspace
+# base dir of bk-sqlx workspace
 dir_workspace = path.dirname(path.dirname(path.realpath(__file__)))
 
 # dir of tests
@@ -42,9 +42,9 @@ def run(command, env=None, cwd=None, display=None):
         sys.exit(res.returncode)
 
 
-def sqlx(command, url, cwd=None):
-    run(f"cargo --quiet run -p sqlx-cli --bin sqlx -- {command}", cwd=cwd, env={"DATABASE_URL": url},
-        display=f"sqlx {command}")
+def bk-sqlx(command, url, cwd=None):
+    run(f"cargo --quiet run -p bk-sqlx-cli --bin bk-sqlx -- {command}", cwd=cwd, env={"DATABASE_URL": url},
+        display=f"bk-sqlx {command}")
 
 
 def project(name, database=None, driver=None):
@@ -69,13 +69,13 @@ def project(name, database=None, driver=None):
         print(f"\x1b[94m @ {database_url}\x1b[0m")
 
         # database drop (if exists)
-        sqlx("db drop -y", database_url, cwd=cwd)
+        bk-sqlx("db drop -y", database_url, cwd=cwd)
 
         # database create
-        sqlx("db create", database_url, cwd=cwd)
+        bk-sqlx("db create", database_url, cwd=cwd)
 
         # migrate
-        sqlx("migrate run", database_url, cwd=cwd)
+        bk-sqlx("migrate run", database_url, cwd=cwd)
 
     # check
     run("cargo check", cwd=cwd, env=env)

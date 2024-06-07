@@ -15,7 +15,7 @@ services:
         environment:
             MYSQL_ROOT_HOST: '%'
             MYSQL_ROOT_PASSWORD: password
-            MYSQL_DATABASE: sqlx
+            MYSQL_DATABASE: bk-sqlx
 
     mysql_8_client_ssl:
         build:
@@ -29,7 +29,7 @@ services:
             - 3306
         environment:
             MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: sqlx
+            MYSQL_DATABASE: bk-sqlx
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
 
     mysql_5_7:
@@ -41,7 +41,7 @@ services:
         environment:
             MYSQL_ROOT_HOST: '%'
             MYSQL_ROOT_PASSWORD: password
-            MYSQL_DATABASE: sqlx
+            MYSQL_DATABASE: bk-sqlx
 
     mysql_5_7_client_ssl:
         build:
@@ -55,7 +55,7 @@ services:
             - 3306
         environment:
             MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: sqlx
+            MYSQL_DATABASE: bk-sqlx
             MYSQL_ALLOW_EMPTY_PASSWORD: 1
 
     #
@@ -71,7 +71,7 @@ services:
             - 3306
         environment:
             MARIADB_ROOT_PASSWORD: password
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
 
     mariadb_10_11_client_ssl:
         build:
@@ -84,7 +84,7 @@ services:
         ports:
             - 3306
         environment:
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
             MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 1
 
     mariadb_10_6:
@@ -95,7 +95,7 @@ services:
             - 3306
         environment:
             MARIADB_ROOT_PASSWORD: password
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
 
     mariadb_10_6_client_ssl:
         build:
@@ -108,7 +108,7 @@ services:
         ports:
             - 3306
         environment:
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
             MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 1
 
     mariadb_10_5:
@@ -119,7 +119,7 @@ services:
             - 3306
         environment:
             MARIADB_ROOT_PASSWORD: password
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
 
     mariadb_10_5_client_ssl:
         build:
@@ -132,7 +132,7 @@ services:
         ports:
             - 3306
         environment:
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
             MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 1
 
     mariadb_10_4:
@@ -143,7 +143,7 @@ services:
             - 3306
         environment:
             MARIADB_ROOT_PASSWORD: password
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
 
     mariadb_10_4_client_ssl:
         build:
@@ -156,7 +156,7 @@ services:
         ports:
             - 3306
         environment:
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
             MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 1
 
     # Ensure MariaDB upstream isn't regressing before release
@@ -169,7 +169,7 @@ services:
             - 3306
         environment:
             MARIADB_ROOT_PASSWORD: password
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
 
     mariadb_verylatest_client_ssl:
         build:
@@ -182,7 +182,7 @@ services:
         ports:
             - 3306
         environment:
-            MARIADB_DATABASE: sqlx
+            MARIADB_DATABASE: bk-sqlx
             MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 1
     #
     # PostgreSQL 15.x, 14.x, 13.x, 12.x, 11.x
@@ -198,7 +198,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: password
             POSTGRES_HOST_AUTH_METHOD: scram-sha-256
@@ -206,7 +206,7 @@ services:
         volumes:
             - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql:z"
         # Loading `pg_stat_statements` should serve as a regression test for:
-        # https://github.com/launchbadge/sqlx/issues/2622
+        # https://github.com/launchbadge/bk-sqlx/issues/2622
         command: >
             -c ssl=on -c ssl_cert_file=/var/lib/postgresql/server.crt -c ssl_key_file=/var/lib/postgresql/server.key -c shared_preload_libraries=pg_stat_statements
 
@@ -219,7 +219,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_HOST_AUTH_METHOD: trust
             POSTGRES_INITDB_ARGS: --auth-host=trust
         volumes:
@@ -236,7 +236,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: password
             POSTGRES_HOST_AUTH_METHOD: scram-sha-256
@@ -255,7 +255,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_HOST_AUTH_METHOD: trust
             POSTGRES_INITDB_ARGS: --auth-host=trust
         volumes:
@@ -272,7 +272,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: password
             POSTGRES_HOST_AUTH_METHOD: scram-sha-256
@@ -291,7 +291,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_HOST_AUTH_METHOD: trust
             POSTGRES_INITDB_ARGS: --auth-host=trust
         volumes:
@@ -308,7 +308,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: password
             POSTGRES_HOST_AUTH_METHOD: scram-sha-256
@@ -327,7 +327,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_HOST_AUTH_METHOD: trust
             POSTGRES_INITDB_ARGS: --auth-host=trust
         volumes:
@@ -344,7 +344,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: password
             POSTGRES_HOST_AUTH_METHOD: scram-sha-256
@@ -363,7 +363,7 @@ services:
         ports:
             - 5432
         environment:
-            POSTGRES_DB: sqlx
+            POSTGRES_DB: bk-sqlx
             POSTGRES_HOST_AUTH_METHOD: trust
             POSTGRES_INITDB_ARGS: --auth-host=trust
         volumes:

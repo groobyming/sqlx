@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use sqlx::postgres::PgPool;
-use sqlx::types::Json;
+use bk_sqlx::postgres::PgPool;
+use bk_sqlx::types::Json;
 use std::io::{self, Read};
 use std::num::NonZeroU8;
 use structopt::StructOpt;
@@ -59,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn add_person(pool: &PgPool, person: Person) -> anyhow::Result<i64> {
-    let rec = sqlx::query!(
+    let rec = bk_sqlx::query!(
         r#"
 INSERT INTO people ( person )
 VALUES ( $1 )
@@ -74,7 +74,7 @@ RETURNING id
 }
 
 async fn list_people(pool: &PgPool) -> anyhow::Result<()> {
-    let rows = sqlx::query_as!(
+    let rows = bk_sqlx::query_as!(
         Row,
         r#"
 SELECT id, person as "person: Json<Person>"

@@ -3,9 +3,9 @@
 
 use std::sync::Once;
 
-pub use sqlx_core::any::driver::install_drivers;
+pub use bk_sqlx_core::any::driver::install_drivers;
 
-pub use sqlx_core::any::{
+pub use bk_sqlx_core::any::{
     Any, AnyArguments, AnyConnectOptions, AnyExecutor, AnyKind, AnyPoolOptions, AnyQueryResult,
     AnyRow, AnyStatement, AnyTransactionManager, AnyTypeInfo, AnyValue, AnyValueRef,
 };
@@ -13,11 +13,11 @@ pub use sqlx_core::any::{
 pub(crate) mod reexports {
     /// **SEE DOCUMENTATION BEFORE USE**. Type alias for `Pool<Any>`.
     #[doc = include_str!("install_drivers_note.md")]
-    pub use sqlx_core::any::AnyPool;
+    pub use bk_sqlx_core::any::AnyPool;
 
     /// **SEE DOCUMENTATION BEFORE USE**. Runtime-generic database connection.
     #[doc = include_str!("install_drivers_note.md")]
-    pub use sqlx_core::any::AnyConnection;
+    pub use bk_sqlx_core::any::AnyConnection;
 }
 
 /// Install all currently compiled-in drivers for [`AnyConnection`] to use.
@@ -33,11 +33,11 @@ pub fn install_default_drivers() {
     ONCE.call_once(|| {
         install_drivers(&[
             #[cfg(feature = "mysql")]
-            sqlx_mysql::any::DRIVER,
+            bk_sqlx_mysql::any::DRIVER,
             #[cfg(feature = "postgres")]
-            sqlx_postgres::any::DRIVER,
+            bk_sqlx_postgres::any::DRIVER,
             #[cfg(feature = "sqlite")]
-            sqlx_sqlite::any::DRIVER,
+            bk_sqlx_sqlite::any::DRIVER,
         ])
         .expect("non-default drivers already installed")
     });

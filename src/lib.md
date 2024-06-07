@@ -51,10 +51,10 @@ The legacy runtime+TLS combination feature flags are still supported, but for fo
 runtime and TLS feature flags is recommended.
 
 [the LaunchBadge team]: https://www.launchbadge.com
-[README]: https://www.github.com/launchbadge/sqlx/tree/main/README.md
-[browse our example projects]: https://www.github.com/launchbadge/sqlx/tree/main/examples
-[Check our FAQ]: https://www.github.com/launchbadge/sqlx/tree/main/FAQ.md
-[open a discussion]: https://github.com/launchbadge/sqlx/discussions/new?category=q-a
+[README]: https://www.github.com/launchbadge/bk-sqlx/tree/main/README.md
+[browse our example projects]: https://www.github.com/launchbadge/bk-sqlx/tree/main/examples
+[Check our FAQ]: https://www.github.com/launchbadge/bk-sqlx/tree/main/FAQ.md
+[open a discussion]: https://github.com/launchbadge/bk-sqlx/discussions/new?category=q-a
 [Tokio]: https://www.tokio.rs
 [async-std]: https://www.async.rs
 [`tokio::runtime::Handle::try_current()`]: https://docs.rs/tokio/latest/tokio/runtime/struct.Handle.html#method.try_current

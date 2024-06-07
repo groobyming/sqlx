@@ -1,7 +1,7 @@
-use sqlx::query;
+use bk_sqlx::query;
 
 async fn insert_and_verify(
-    transaction: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    transaction: &mut bk_sqlx::Transaction<'_, bk_sqlx::Postgres>,
     test_id: i64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     query!(
@@ -25,7 +25,7 @@ async fn insert_and_verify(
 }
 
 async fn explicit_rollback_example(
-    pool: &sqlx::PgPool,
+    pool: &bk_sqlx::PgPool,
     test_id: i64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut transaction = pool.begin().await?;
@@ -38,7 +38,7 @@ async fn explicit_rollback_example(
 }
 
 async fn implicit_rollback_example(
-    pool: &sqlx::PgPool,
+    pool: &bk_sqlx::PgPool,
     test_id: i64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut transaction = pool.begin().await?;
@@ -50,7 +50,7 @@ async fn implicit_rollback_example(
 }
 
 async fn commit_example(
-    pool: &sqlx::PgPool,
+    pool: &bk_sqlx::PgPool,
     test_id: i64,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut transaction = pool.begin().await?;
@@ -66,7 +66,7 @@ async fn commit_example(
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let conn_str =
         std::env::var("DATABASE_URL").expect("Env var DATABASE_URL is required for this example.");
-    let pool = sqlx::PgPool::connect(&conn_str).await?;
+    let pool = bk_sqlx::PgPool::connect(&conn_str).await?;
 
     let test_id = 1;
 

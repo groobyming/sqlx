@@ -1,12 +1,12 @@
 use futures::TryStreamExt;
-use sqlx::mssql::{Mssql, MssqlPoolOptions};
-use sqlx::{Column, Connection, Executor, MssqlConnection, Row, Statement, TypeInfo};
-use sqlx_core::mssql::MssqlRow;
-use sqlx_test::new;
+use bk_sqlx::mssql::{Mssql, MssqlPoolOptions};
+use bk_sqlx::{Column, Connection, Executor, MssqlConnection, Row, Statement, TypeInfo};
+use bk_sqlx_core::mssql::MssqlRow;
+use bk_sqlx_test::new;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::time::Duration;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_connects() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
@@ -17,7 +17,7 @@ async fn it_connects() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_select_expression() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
@@ -29,7 +29,7 @@ async fn it_can_select_expression() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_select_expression_by_name() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
@@ -41,7 +41,7 @@ async fn it_can_select_expression_by_name() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_fail_to_connect() -> anyhow::Result<()> {
     let mut url = dotenvy::var("DATABASE_URL")?;
     url = url.replace("Password", "NotPassword");
@@ -55,11 +55,11 @@ async fn it_can_fail_to_connect() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_inspect_errors() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
-    let res: Result<_, sqlx::Error> = sqlx::query("select f").execute(&mut conn).await;
+    let res: Result<_, bk_sqlx::Error> = bk_sqlx::query("select f").execute(&mut conn).await;
     let err = res.unwrap_err();
 
     // can also do [as_database_error] or use `match ..`
@@ -70,11 +70,11 @@ async fn it_can_inspect_errors() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_maths() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
-    let value = sqlx::query("SELECT 1 + @p1")
+    let value = bk_sqlx::query("SELECT 1 + @p1")
         .bind(5_i32)
         .try_map(|row: MssqlRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
@@ -85,7 +85,7 @@ async fn it_maths() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_executes() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
@@ -98,7 +98,7 @@ CREATE TABLE #users (id INTEGER PRIMARY KEY);
         .await?;
 
     for index in 1..=10_i32 {
-        let done = sqlx::query("INSERT INTO #users (id) VALUES (@p1)")
+        let done = bk_sqlx::query("INSERT INTO #users (id) VALUES (@p1)")
             .bind(index * 2)
             .execute(&mut conn)
             .await?;
@@ -106,7 +106,7 @@ CREATE TABLE #users (id INTEGER PRIMARY KEY);
         assert_eq!(done.rows_affected(), 1);
     }
 
-    let sum: i32 = sqlx::query("SELECT id FROM #users")
+    let sum: i32 = bk_sqlx::query("SELECT id FROM #users")
         .try_map(|row: MssqlRow| row.try_get::<i32, _>(0))
         .fetch(&mut conn)
         .try_fold(0_i32, |acc, x| async move { Ok(acc + x) })
@@ -117,7 +117,7 @@ CREATE TABLE #users (id INTEGER PRIMARY KEY);
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_return_1000_rows() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
@@ -130,7 +130,7 @@ CREATE TABLE #users (id INTEGER PRIMARY KEY);
         .await?;
 
     for index in 1..=1000_i32 {
-        let done = sqlx::query("INSERT INTO #users (id) VALUES (@p1)")
+        let done = bk_sqlx::query("INSERT INTO #users (id) VALUES (@p1)")
             .bind(index * 2)
             .execute(&mut conn)
             .await?;
@@ -138,7 +138,7 @@ CREATE TABLE #users (id INTEGER PRIMARY KEY);
         assert_eq!(done.rows_affected(), 1);
     }
 
-    let sum: i32 = sqlx::query("SELECT id FROM #users")
+    let sum: i32 = bk_sqlx::query("SELECT id FROM #users")
         .try_map(|row: MssqlRow| row.try_get::<i32, _>(0))
         .fetch(&mut conn)
         .try_fold(0_i32, |acc, x| async move { Ok(acc + x) })
@@ -149,11 +149,11 @@ CREATE TABLE #users (id INTEGER PRIMARY KEY);
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_selects_null() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
-    let (_, val): (i32, Option<i32>) = sqlx::query_as("SELECT 5, NULL")
+    let (_, val): (i32, Option<i32>) = bk_sqlx::query_as("SELECT 5, NULL")
         .fetch_one(&mut conn)
         .await?;
 
@@ -166,11 +166,11 @@ async fn it_selects_null() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_binds_empty_string_and_null() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
-    let (val, val2): (String, Option<String>) = sqlx::query_as("SELECT @p1, @p2")
+    let (val, val2): (String, Option<String>) = bk_sqlx::query_as("SELECT @p1, @p2")
         .bind("")
         .bind(None::<String>)
         .fetch_one(&mut conn)
@@ -182,27 +182,27 @@ async fn it_binds_empty_string_and_null() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
-    conn.execute("IF OBJECT_ID('_sqlx_users_1922', 'U') IS NULL CREATE TABLE _sqlx_users_1922 (id INTEGER PRIMARY KEY)")
+    conn.execute("IF OBJECT_ID('_bk_sqlx_users_1922', 'U') IS NULL CREATE TABLE _bk_sqlx_users_1922 (id INTEGER PRIMARY KEY)")
         .await?;
 
-    conn.execute("DELETE FROM _sqlx_users_1922").await?;
+    conn.execute("DELETE FROM _bk_sqlx_users_1922").await?;
 
     // begin .. rollback
 
     let mut tx = conn.begin().await?;
 
-    sqlx::query("INSERT INTO _sqlx_users_1922 (id) VALUES ($1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_1922 (id) VALUES ($1)")
         .bind(10_i32)
         .execute(&mut tx)
         .await?;
 
     tx.rollback().await?;
 
-    let (count,): (i32,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_1922")
+    let (count,): (i32,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_1922")
         .fetch_one(&mut conn)
         .await?;
 
@@ -212,14 +212,14 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
 
     let mut tx = conn.begin().await?;
 
-    sqlx::query("INSERT INTO _sqlx_users_1922 (id) VALUES (@p1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_1922 (id) VALUES (@p1)")
         .bind(10_i32)
         .execute(&mut tx)
         .await?;
 
     tx.commit().await?;
 
-    let (count,): (i32,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_1922")
+    let (count,): (i32,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_1922")
         .fetch_one(&mut conn)
         .await?;
 
@@ -230,7 +230,7 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     {
         let mut tx = conn.begin().await?;
 
-        sqlx::query("INSERT INTO _sqlx_users_1922 (id) VALUES (@p1)")
+        bk_sqlx::query("INSERT INTO _bk_sqlx_users_1922 (id) VALUES (@p1)")
             .bind(20_i32)
             .execute(&mut tx)
             .await?;
@@ -238,7 +238,7 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
 
     conn = new::<Mssql>().await?;
 
-    let (count,): (i32,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_1922")
+    let (count,): (i32,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_1922")
         .fetch_one(&mut conn)
         .await?;
 
@@ -247,20 +247,20 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
 
-    conn.execute("IF OBJECT_ID('_sqlx_users_2523', 'U') IS NULL CREATE TABLE _sqlx_users_2523 (id INTEGER PRIMARY KEY)")
+    conn.execute("IF OBJECT_ID('_bk_sqlx_users_2523', 'U') IS NULL CREATE TABLE _bk_sqlx_users_2523 (id INTEGER PRIMARY KEY)")
         .await?;
 
-    conn.execute("DELETE FROM _sqlx_users_2523").await?;
+    conn.execute("DELETE FROM _bk_sqlx_users_2523").await?;
 
     // begin
     let mut tx = conn.begin().await?;
 
     // insert a user
-    sqlx::query("INSERT INTO _sqlx_users_2523 (id) VALUES (@p1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_2523 (id) VALUES (@p1)")
         .bind(50_i32)
         .execute(&mut tx)
         .await?;
@@ -269,7 +269,7 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     let mut tx2 = tx.begin().await?;
 
     // insert another user
-    sqlx::query("INSERT INTO _sqlx_users_2523 (id) VALUES (@p1)")
+    bk_sqlx::query("INSERT INTO _bk_sqlx_users_2523 (id) VALUES (@p1)")
         .bind(10_i32)
         .execute(&mut tx2)
         .await?;
@@ -278,7 +278,7 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     tx2.rollback().await?;
 
     // did we really?
-    let (count,): (i32,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_2523")
+    let (count,): (i32,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_2523")
         .fetch_one(&mut tx)
         .await?;
 
@@ -288,7 +288,7 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     tx.commit().await?;
 
     // did we really?
-    let (count,): (i32,) = sqlx::query_as("SELECT COUNT(*) FROM _sqlx_users_2523")
+    let (count,): (i32,) = bk_sqlx::query_as("SELECT COUNT(*) FROM _bk_sqlx_users_2523")
         .fetch_one(&mut conn)
         .await?;
 
@@ -297,12 +297,12 @@ async fn it_can_work_with_nested_transactions() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_prepare_then_execute() -> anyhow::Result<()> {
     let mut conn = new::<Mssql>().await?;
     let mut tx = conn.begin().await?;
 
-    let tweet_id: i64 = sqlx::query_scalar(
+    let tweet_id: i64 = bk_sqlx::query_scalar(
         "INSERT INTO tweet ( id, text ) OUTPUT INSERTED.id VALUES ( 50, 'Hello, World' )",
     )
     .fetch_one(&mut tx)
@@ -330,16 +330,16 @@ async fn it_can_prepare_then_execute() -> anyhow::Result<()> {
 
 // MSSQL-specific copy of the test case in `tests/any/pool.rs`
 // because MSSQL has its own bespoke syntax for temporary tables.
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_pool_callbacks() -> anyhow::Result<()> {
-    #[derive(sqlx::FromRow, Debug, PartialEq, Eq)]
+    #[derive(bk_sqlx::FromRow, Debug, PartialEq, Eq)]
     struct ConnStats {
         id: i32,
         before_acquire_calls: i32,
         after_release_calls: i32,
     }
 
-    sqlx_test::setup_if_needed();
+    bk_sqlx_test::setup_if_needed();
 
     let current_id = AtomicI32::new(0);
 
@@ -378,7 +378,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
 
             Box::pin(async move {
                 // MSSQL doesn't support UPDATE ... RETURNING either
-                sqlx::query(
+                bk_sqlx::query(
                     r#"
                         UPDATE #conn_stats 
                         SET before_acquire_calls = before_acquire_calls + 1
@@ -387,7 +387,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
                 .execute(&mut *conn)
                 .await?;
 
-                let stats: ConnStats = sqlx::query_as("SELECT * FROM #conn_stats")
+                let stats: ConnStats = bk_sqlx::query_as("SELECT * FROM #conn_stats")
                     .fetch_one(conn)
                     .await?;
 
@@ -402,7 +402,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
             assert_eq!(meta.idle_for, Duration::ZERO);
 
             Box::pin(async move {
-                sqlx::query(
+                bk_sqlx::query(
                     r#"
                         UPDATE #conn_stats 
                         SET after_release_calls = after_release_calls + 1
@@ -411,7 +411,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
                 .execute(&mut *conn)
                 .await?;
 
-                let stats: ConnStats = sqlx::query_as("SELECT * FROM #conn_stats")
+                let stats: ConnStats = bk_sqlx::query_as("SELECT * FROM #conn_stats")
                     .fetch_one(conn)
                     .await?;
 
@@ -441,7 +441,7 @@ async fn test_pool_callbacks() -> anyhow::Result<()> {
     ];
 
     for (id, before_acquire_calls, after_release_calls) in pattern {
-        let conn_stats: ConnStats = sqlx::query_as("SELECT * FROM #conn_stats")
+        let conn_stats: ConnStats = bk_sqlx::query_as("SELECT * FROM #conn_stats")
             .fetch_one(&pool)
             .await?;
 

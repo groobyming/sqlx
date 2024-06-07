@@ -1,11 +1,11 @@
 extern crate time_ as time;
 
-use sqlx::sqlite::{Sqlite, SqliteRow};
-use sqlx_core::executor::Executor;
-use sqlx_core::row::Row;
-use sqlx_core::types::Text;
-use sqlx_test::new;
-use sqlx_test::test_type;
+use bk_sqlx::sqlite::{Sqlite, SqliteRow};
+use bk_sqlx_core::executor::Executor;
+use bk_sqlx_core::row::Row;
+use bk_sqlx_core::types::Text;
+use bk_sqlx_test::new;
+use bk_sqlx_test::test_type;
 use std::net::SocketAddr;
 
 test_type!(null<Option<i32>>(Sqlite,
@@ -43,8 +43,8 @@ test_type!(bytes<Vec<u8>>(Sqlite,
 mod json_tests {
     use super::*;
     use serde_json::{json, Value as JsonValue};
-    use sqlx::types::Json;
-    use sqlx_test::test_type;
+    use bk_sqlx::types::Json;
+    use bk_sqlx_test::test_type;
 
     test_type!(json<JsonValue>(
         Sqlite,
@@ -78,11 +78,11 @@ mod json_tests {
         "\'{\"json_column\":[1,2]}\'" == Json(Customer { json_column: Json(vec![1, 2]) })
     ));
 
-    #[sqlx_macros::test]
+    #[bk_sqlx_macros::test]
     async fn it_json_extracts() -> anyhow::Result<()> {
         let mut conn = new::<Sqlite>().await?;
 
-        let value = sqlx::query("select JSON_EXTRACT(JSON('{ \"number\": 42 }'), '$.number') = ?1")
+        let value = bk_sqlx::query("select JSON_EXTRACT(JSON('{ \"number\": 42 }'), '$.number') = ?1")
             .bind(42_i32)
             .try_map(|row: SqliteRow| row.try_get::<bool, _>(0))
             .fetch_one(&mut conn)
@@ -97,7 +97,7 @@ mod json_tests {
 #[cfg(feature = "chrono")]
 mod chrono {
     use super::*;
-    use sqlx::types::chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, TimeZone, Utc};
+    use bk_sqlx::types::chrono::{DateTime, FixedOffset, NaiveDate, NaiveDateTime, TimeZone, Utc};
 
     test_type!(chrono_naive_date_time<NaiveDateTime>(Sqlite, "SELECT datetime({0}) is datetime(?), {0}, ?",
         "'2019-01-02 05:10:20'" == NaiveDate::from_ymd(2019, 1, 2).and_hms(5, 10, 20)
@@ -115,7 +115,7 @@ mod chrono {
 #[cfg(feature = "time")]
 mod time_tests {
     use super::*;
-    use sqlx::types::time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
+    use bk_sqlx::types::time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
     use time::macros::{date, datetime, time};
 
     test_type!(time_offset_date_time<OffsetDateTime>(
@@ -163,7 +163,7 @@ mod time_tests {
 #[cfg(feature = "bstr")]
 mod bstr {
     use super::*;
-    use sqlx::types::bstr::BString;
+    use bk_sqlx::types::bstr::BString;
 
     test_type!(bstring<BString>(Sqlite,
         "cast('abc123' as blob)" == BString::from(&b"abc123"[..]),
@@ -174,7 +174,7 @@ mod bstr {
 #[cfg(feature = "git2")]
 mod git2 {
     use super::*;
-    use sqlx::types::git2::Oid;
+    use bk_sqlx::types::git2::Oid;
 
     test_type!(oid<Oid>(
         Sqlite,
@@ -185,32 +185,32 @@ mod git2 {
 }
 
 #[cfg(feature = "uuid")]
-test_type!(uuid<sqlx::types::Uuid>(Sqlite,
+test_type!(uuid<bk_sqlx::types::Uuid>(Sqlite,
     "x'b731678f636f4135bc6f19440c13bd19'"
-        == sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap(),
+        == bk_sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap(),
     "x'00000000000000000000000000000000'"
-        == sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap()
+        == bk_sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap()
 ));
 
 #[cfg(feature = "uuid")]
-test_type!(uuid_hyphenated<sqlx::types::uuid::fmt::Hyphenated>(Sqlite,
+test_type!(uuid_hyphenated<bk_sqlx::types::uuid::fmt::Hyphenated>(Sqlite,
     "'b731678f-636f-4135-bc6f-19440c13bd19'"
-        == sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap().hyphenated(),
+        == bk_sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap().hyphenated(),
     "'00000000-0000-0000-0000-000000000000'"
-        == sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap().hyphenated()
+        == bk_sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap().hyphenated()
 ));
 
 #[cfg(feature = "uuid")]
-test_type!(uuid_simple<sqlx::types::uuid::fmt::Simple>(Sqlite,
+test_type!(uuid_simple<bk_sqlx::types::uuid::fmt::Simple>(Sqlite,
     "'b731678f636f4135bc6f19440c13bd19'"
-        == sqlx::types::Uuid::parse_str("b731678f636f4135bc6f19440c13bd19").unwrap().simple(),
+        == bk_sqlx::types::Uuid::parse_str("b731678f636f4135bc6f19440c13bd19").unwrap().simple(),
     "'00000000000000000000000000000000'"
-        == sqlx::types::Uuid::parse_str("00000000000000000000000000000000").unwrap().simple()
+        == bk_sqlx::types::Uuid::parse_str("00000000000000000000000000000000").unwrap().simple()
 ));
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_text_adapter() -> anyhow::Result<()> {
-    #[derive(sqlx::FromRow, Debug, PartialEq, Eq)]
+    #[derive(bk_sqlx::FromRow, Debug, PartialEq, Eq)]
     struct Login {
         user_id: i32,
         socket_addr: Text<SocketAddr>,
@@ -234,14 +234,14 @@ CREATE TEMPORARY TABLE user_login (
     let user_id = 1234;
     let socket_addr: SocketAddr = "198.51.100.47:31790".parse().unwrap();
 
-    sqlx::query("INSERT INTO user_login (user_id, socket_addr) VALUES (?, ?)")
+    bk_sqlx::query("INSERT INTO user_login (user_id, socket_addr) VALUES (?, ?)")
         .bind(user_id)
         .bind(Text(socket_addr))
         .execute(&mut conn)
         .await?;
 
     let last_login: Login =
-        sqlx::query_as("SELECT * FROM user_login ORDER BY login_at DESC LIMIT 1")
+        bk_sqlx::query_as("SELECT * FROM user_login ORDER BY login_at DESC LIMIT 1")
             .fetch_one(&mut conn)
             .await?;
 

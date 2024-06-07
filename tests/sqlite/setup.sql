@@ -6,7 +6,7 @@ CREATE TABLE tweet (
     owner_id BIGINT
 );
 INSERT INTO tweet(id, text, owner_id)
-VALUES (1, '#sqlx is pretty cool!', 1);
+VALUES (1, '#bk-sqlx is pretty cool!', 1);
 --
 CREATE TABLE tweet_reply (
     id BIGINT NOT NULL PRIMARY KEY,
@@ -16,7 +16,7 @@ CREATE TABLE tweet_reply (
     CONSTRAINT tweet_id_fk FOREIGN KEY (tweet_id) REFERENCES tweet(id)
 );
 INSERT INTO tweet_reply(id, tweet_id, text, owner_id)
-VALUES (1, 1, 'Yeah! #sqlx is indeed pretty cool!', 1);
+VALUES (1, 1, 'Yeah! #bk-sqlx is indeed pretty cool!', 1);
 --
 CREATE TABLE accounts (
     id INTEGER NOT NULL PRIMARY KEY,

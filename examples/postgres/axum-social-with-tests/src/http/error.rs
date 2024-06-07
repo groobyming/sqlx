@@ -13,7 +13,7 @@ pub enum Error {
     /// The exact error contents are not reported to the user in order to avoid leaking
     /// information about databse internals.
     #[error("an internal database error occurred")]
-    Sqlx(#[from] sqlx::Error),
+    Sqlx(#[from] bk_sqlx::Error),
 
     /// Similarly, we don't want to report random `anyhow` errors to the user.
     #[error("an internal server error occurred")]

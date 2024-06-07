@@ -4,12 +4,12 @@ use std::net::SocketAddr;
 #[cfg(feature = "rust_decimal")]
 use std::str::FromStr;
 
-use sqlx::mysql::MySql;
-use sqlx::{Executor, Row};
+use bk_sqlx::mysql::MySql;
+use bk_sqlx::{Executor, Row};
 
-use sqlx::types::Text;
+use bk_sqlx::types::Text;
 
-use sqlx_test::{new, test_type};
+use bk_sqlx_test::{new, test_type};
 
 test_type!(bool(MySql, "false" == false, "true" == true));
 
@@ -47,32 +47,32 @@ test_type!(bytes<Vec<u8>>(MySql,
 ));
 
 #[cfg(feature = "uuid")]
-test_type!(uuid<sqlx::types::Uuid>(MySql,
+test_type!(uuid<bk_sqlx::types::Uuid>(MySql,
     "x'b731678f636f4135bc6f19440c13bd19'"
-        == sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap(),
+        == bk_sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap(),
     "x'00000000000000000000000000000000'"
-        == sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap()
+        == bk_sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap()
 ));
 
 #[cfg(feature = "uuid")]
-test_type!(uuid_hyphenated<sqlx::types::uuid::fmt::Hyphenated>(MySql,
+test_type!(uuid_hyphenated<bk_sqlx::types::uuid::fmt::Hyphenated>(MySql,
     "'b731678f-636f-4135-bc6f-19440c13bd19'"
-        == sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap().hyphenated(),
+        == bk_sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap().hyphenated(),
     "'00000000-0000-0000-0000-000000000000'"
-        == sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap().hyphenated()
+        == bk_sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap().hyphenated()
 ));
 
 #[cfg(feature = "uuid")]
-test_type!(uuid_simple<sqlx::types::uuid::fmt::Simple>(MySql,
+test_type!(uuid_simple<bk_sqlx::types::uuid::fmt::Simple>(MySql,
     "'b731678f636f4135bc6f19440c13bd19'"
-        == sqlx::types::Uuid::parse_str("b731678f636f4135bc6f19440c13bd19").unwrap().simple(),
+        == bk_sqlx::types::Uuid::parse_str("b731678f636f4135bc6f19440c13bd19").unwrap().simple(),
     "'00000000000000000000000000000000'"
-        == sqlx::types::Uuid::parse_str("00000000000000000000000000000000").unwrap().simple()
+        == bk_sqlx::types::Uuid::parse_str("00000000000000000000000000000000").unwrap().simple()
 ));
 
 #[cfg(feature = "chrono")]
 mod chrono {
-    use sqlx::types::chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
+    use bk_sqlx::types::chrono::{DateTime, NaiveDate, NaiveDateTime, NaiveTime, Utc};
 
     use super::*;
 
@@ -101,9 +101,9 @@ mod chrono {
             )
     ));
 
-    #[sqlx_macros::test]
+    #[bk_sqlx_macros::test]
     async fn test_type_chrono_zero_date() -> anyhow::Result<()> {
-        let mut conn = sqlx_test::new::<MySql>().await?;
+        let mut conn = bk_sqlx_test::new::<MySql>().await?;
 
         // ensure that zero dates are turned on
         // newer MySQL has these disabled by default
@@ -116,7 +116,7 @@ mod chrono {
 
         // date
 
-        let row = sqlx::query("SELECT DATE '0000-00-00'")
+        let row = bk_sqlx::query("SELECT DATE '0000-00-00'")
             .fetch_one(&mut conn)
             .await?;
 
@@ -127,7 +127,7 @@ mod chrono {
 
         // datetime
 
-        let row = sqlx::query("SELECT TIMESTAMP '0000-00-00 00:00:00'")
+        let row = bk_sqlx::query("SELECT TIMESTAMP '0000-00-00 00:00:00'")
             .fetch_one(&mut conn)
             .await?;
 
@@ -144,7 +144,7 @@ mod chrono {
 mod time_tests {
     use time::macros::{date, time};
 
-    use sqlx::types::time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
+    use bk_sqlx::types::time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
 
     use super::*;
 
@@ -179,9 +179,9 @@ mod time_tests {
                 .assume_utc()
     ));
 
-    #[sqlx_macros::test]
+    #[bk_sqlx_macros::test]
     async fn test_type_time_zero_date() -> anyhow::Result<()> {
-        let mut conn = sqlx_test::new::<MySql>().await?;
+        let mut conn = bk_sqlx_test::new::<MySql>().await?;
 
         // ensure that zero dates are turned on
         // newer MySQL has these disabled by default
@@ -194,7 +194,7 @@ mod time_tests {
 
         // date
 
-        let row = sqlx::query("SELECT DATE '0000-00-00'")
+        let row = bk_sqlx::query("SELECT DATE '0000-00-00'")
             .fetch_one(&mut conn)
             .await?;
 
@@ -205,7 +205,7 @@ mod time_tests {
 
         // datetime
 
-        let row = sqlx::query("SELECT TIMESTAMP '0000-00-00 00:00:00'")
+        let row = bk_sqlx::query("SELECT TIMESTAMP '0000-00-00 00:00:00'")
             .fetch_one(&mut conn)
             .await?;
 
@@ -219,34 +219,34 @@ mod time_tests {
 }
 
 #[cfg(feature = "bigdecimal")]
-test_type!(bigdecimal<sqlx::types::BigDecimal>(
+test_type!(bigdecimal<bk_sqlx::types::BigDecimal>(
     MySql,
-    "CAST(0 as DECIMAL(0, 0))" == "0".parse::<sqlx::types::BigDecimal>().unwrap(),
-    "CAST(1 AS DECIMAL(1, 0))" == "1".parse::<sqlx::types::BigDecimal>().unwrap(),
-    "CAST(10000 AS DECIMAL(5, 0))" == "10000".parse::<sqlx::types::BigDecimal>().unwrap(),
-    "CAST(0.1 AS DECIMAL(2, 1))" == "0.1".parse::<sqlx::types::BigDecimal>().unwrap(),
-    "CAST(0.01234 AS DECIMAL(6, 5))" == "0.01234".parse::<sqlx::types::BigDecimal>().unwrap(),
-    "CAST(12.34 AS DECIMAL(4, 2))" == "12.34".parse::<sqlx::types::BigDecimal>().unwrap(),
-    "CAST(12345.6789 AS DECIMAL(9, 4))" == "12345.6789".parse::<sqlx::types::BigDecimal>().unwrap(),
+    "CAST(0 as DECIMAL(0, 0))" == "0".parse::<bk_sqlx::types::BigDecimal>().unwrap(),
+    "CAST(1 AS DECIMAL(1, 0))" == "1".parse::<bk_sqlx::types::BigDecimal>().unwrap(),
+    "CAST(10000 AS DECIMAL(5, 0))" == "10000".parse::<bk_sqlx::types::BigDecimal>().unwrap(),
+    "CAST(0.1 AS DECIMAL(2, 1))" == "0.1".parse::<bk_sqlx::types::BigDecimal>().unwrap(),
+    "CAST(0.01234 AS DECIMAL(6, 5))" == "0.01234".parse::<bk_sqlx::types::BigDecimal>().unwrap(),
+    "CAST(12.34 AS DECIMAL(4, 2))" == "12.34".parse::<bk_sqlx::types::BigDecimal>().unwrap(),
+    "CAST(12345.6789 AS DECIMAL(9, 4))" == "12345.6789".parse::<bk_sqlx::types::BigDecimal>().unwrap(),
 ));
 
 #[cfg(feature = "rust_decimal")]
-test_type!(decimal<sqlx::types::Decimal>(MySql,
-    "CAST(0 as DECIMAL(0, 0))" == sqlx::types::Decimal::from_str("0").unwrap(),
-    "CAST(1 AS DECIMAL(1, 0))" == sqlx::types::Decimal::from_str("1").unwrap(),
-    "CAST(10000 AS DECIMAL(5, 0))" == sqlx::types::Decimal::from_str("10000").unwrap(),
-    "CAST(0.1 AS DECIMAL(2, 1))" == sqlx::types::Decimal::from_str("0.1").unwrap(),
-    "CAST(0.01234 AS DECIMAL(6, 5))" == sqlx::types::Decimal::from_str("0.01234").unwrap(),
-    "CAST(12.34 AS DECIMAL(4, 2))" == sqlx::types::Decimal::from_str("12.34").unwrap(),
-    "CAST(12345.6789 AS DECIMAL(9, 4))" == sqlx::types::Decimal::from_str("12345.6789").unwrap(),
+test_type!(decimal<bk_sqlx::types::Decimal>(MySql,
+    "CAST(0 as DECIMAL(0, 0))" == bk_sqlx::types::Decimal::from_str("0").unwrap(),
+    "CAST(1 AS DECIMAL(1, 0))" == bk_sqlx::types::Decimal::from_str("1").unwrap(),
+    "CAST(10000 AS DECIMAL(5, 0))" == bk_sqlx::types::Decimal::from_str("10000").unwrap(),
+    "CAST(0.1 AS DECIMAL(2, 1))" == bk_sqlx::types::Decimal::from_str("0.1").unwrap(),
+    "CAST(0.01234 AS DECIMAL(6, 5))" == bk_sqlx::types::Decimal::from_str("0.01234").unwrap(),
+    "CAST(12.34 AS DECIMAL(4, 2))" == bk_sqlx::types::Decimal::from_str("12.34").unwrap(),
+    "CAST(12345.6789 AS DECIMAL(9, 4))" == bk_sqlx::types::Decimal::from_str("12345.6789").unwrap(),
 ));
 
 #[cfg(feature = "json")]
 mod json_tests {
     use serde_json::{json, Value as JsonValue};
 
-    use sqlx::types::Json;
-    use sqlx_test::test_type;
+    use bk_sqlx::types::Json;
+    use bk_sqlx_test::test_type;
 
     use super::*;
 
@@ -287,7 +287,7 @@ mod json_tests {
     ));
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_bits() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
@@ -302,14 +302,14 @@ CREATE TEMPORARY TABLE with_bits (
     )
     .await?;
 
-    sqlx::query("INSERT INTO with_bits (value_1, value_n) VALUES (?, ?)")
+    bk_sqlx::query("INSERT INTO with_bits (value_1, value_n) VALUES (?, ?)")
         .bind(&1_u8)
         .bind(&510202_u32)
         .execute(&mut conn)
         .await?;
 
     // BINARY
-    let (v1, vn): (u8, u64) = sqlx::query_as("SELECT value_1, value_n FROM with_bits")
+    let (v1, vn): (u8, u64) = bk_sqlx::query_as("SELECT value_1, value_n FROM with_bits")
         .fetch_one(&mut conn)
         .await?;
 
@@ -329,9 +329,9 @@ CREATE TEMPORARY TABLE with_bits (
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_text_adapter() -> anyhow::Result<()> {
-    #[derive(sqlx::FromRow, Debug, PartialEq, Eq)]
+    #[derive(bk_sqlx::FromRow, Debug, PartialEq, Eq)]
     struct Login {
         user_id: i32,
         socket_addr: Text<SocketAddr>,
@@ -355,14 +355,14 @@ CREATE TEMPORARY TABLE user_login (
     let user_id = 1234;
     let socket_addr: SocketAddr = "198.51.100.47:31790".parse().unwrap();
 
-    sqlx::query("INSERT INTO user_login (user_id, socket_addr, login_at) VALUES (?, ?, NOW())")
+    bk_sqlx::query("INSERT INTO user_login (user_id, socket_addr, login_at) VALUES (?, ?, NOW())")
         .bind(user_id)
         .bind(Text(socket_addr))
         .execute(&mut conn)
         .await?;
 
     let last_login: Login =
-        sqlx::query_as("SELECT * FROM user_login ORDER BY login_at DESC LIMIT 1")
+        bk_sqlx::query_as("SELECT * FROM user_login ORDER BY login_at DESC LIMIT 1")
             .fetch_one(&mut conn)
             .await?;
 

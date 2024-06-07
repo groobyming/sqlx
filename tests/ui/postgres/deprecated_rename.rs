@@ -1,5 +1,5 @@
-#[derive(sqlx::Type)]
-#[sqlx(rename = "foo")]
+#[derive(bk_sqlx::Type)]
+#[bk_sqlx(rename = "foo")]
 enum Foo {
     One,
     Two,

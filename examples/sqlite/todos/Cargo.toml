@@ -1,5 +1,5 @@
 [package]
-name = "sqlx-example-sqlite-todos"
+name = "bk-sqlx-example-sqlite-todos"
 version = "0.1.0"
 edition = "2018"
 workspace = "../../../"
@@ -7,6 +7,6 @@ workspace = "../../../"
 [dependencies]
 anyhow = "1.0"
 futures = "0.3"
-sqlx = { path = "../../../", features = ["sqlite", "runtime-tokio-native-tls"] }
+bk-sqlx = { path = "../../../", features = ["sqlite", "runtime-tokio-native-tls"] }
 structopt = "0.3"
 tokio = { version = "1.20.0", features = ["rt", "macros"]}

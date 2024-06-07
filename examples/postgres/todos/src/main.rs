@@ -1,4 +1,4 @@
-use sqlx::postgres::PgPool;
+use bk_sqlx::postgres::PgPool;
 use std::env;
 use structopt::StructOpt;
 
@@ -43,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn add_todo(pool: &PgPool, description: String) -> anyhow::Result<i64> {
-    let rec = sqlx::query!(
+    let rec = bk_sqlx::query!(
         r#"
 INSERT INTO todos ( description )
 VALUES ( $1 )
@@ -58,7 +58,7 @@ RETURNING id
 }
 
 async fn complete_todo(pool: &PgPool, id: i64) -> anyhow::Result<bool> {
-    let rows_affected = sqlx::query!(
+    let rows_affected = bk_sqlx::query!(
         r#"
 UPDATE todos
 SET done = TRUE
@@ -74,7 +74,7 @@ WHERE id = $1
 }
 
 async fn list_todos(pool: &PgPool) -> anyhow::Result<()> {
-    let recs = sqlx::query!(
+    let recs = bk_sqlx::query!(
         r#"
 SELECT id, description, done
 FROM todos

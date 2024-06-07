@@ -18,7 +18,7 @@ parser.add_argument("--test")
 
 argv, unknown = parser.parse_known_args()
 
-# base dir of sqlx workspace
+# base dir of bk-sqlx workspace
 dir_workspace = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 # dir of tests
@@ -87,7 +87,7 @@ def run(command, comment=None, env=None, service=None, tag=None, args=None, data
 
 
     if service is not None:
-        database_url = start_database(service, database="sqlite/sqlite.db" if service == "sqlite" else "sqlx", cwd=dir_tests)
+        database_url = start_database(service, database="sqlite/sqlite.db" if service == "sqlite" else "bk-sqlx", cwd=dir_tests)
 
         if database_url_args:
             database_url += "?" + database_url_args
@@ -148,7 +148,7 @@ for runtime in ["async-std", "tokio"]:
 for runtime in ["async-std", "tokio"]:
     for tls in ["native-tls", "rustls", "none"]:
         run(
-            f"cargo test --no-default-features --manifest-path sqlx-core/Cargo.toml --features json,offline,migrate,_rt-{runtime},_tls-{tls}",
+            f"cargo test --no-default-features --manifest-path bk-sqlx-core/Cargo.toml --features json,offline,migrate,_rt-{runtime},_tls-{tls}",
             comment="unit test core",
             tag=f"unit_{runtime}_{tls}"
         )
@@ -250,4 +250,4 @@ for runtime in ["async-std", "tokio"]:
                 )
 
 # TODO: Use [grcov] if available
-# ~/.cargo/bin/grcov tests/.cache/target/debug -s sqlx-core/ -t html --llvm --branch -o ./target/debug/coverage
+# ~/.cargo/bin/grcov tests/.cache/target/debug -s bk-sqlx-core/ -t html --llvm --branch -o ./target/debug/coverage

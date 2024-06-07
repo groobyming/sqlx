@@ -18,13 +18,13 @@ etc.
 2. Create the database.
 
     ```
-    $ sqlx db create
+    $ bk-sqlx db create
     ```
 
 3. Run sql migrations
 
     ```
-    $ sqlx migrate run
+    $ bk-sqlx migrate run
     ```
 
 ## Usage

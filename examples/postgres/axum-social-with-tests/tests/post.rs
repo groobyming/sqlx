@@ -1,6 +1,6 @@
-use sqlx::PgPool;
+use bk_sqlx::PgPool;
 
-use sqlx_example_postgres_axum_social::http;
+use bk_sqlx_example_postgres_axum_social::http;
 
 use axum::http::{Request, StatusCode};
 use tower::ServiceExt;
@@ -13,7 +13,7 @@ use serde_json::json;
 
 mod common;
 
-#[sqlx::test(fixtures("users"))]
+#[bk_sqlx::test(fixtures("users"))]
 async fn test_create_post(db: PgPool) {
     let mut app = http::app(db);
 
@@ -83,7 +83,7 @@ async fn test_create_post(db: PgPool) {
     assert_eq!(resp3_json["message"], "invalid username/password");
 }
 
-#[sqlx::test(fixtures("users", "posts"))]
+#[bk_sqlx::test(fixtures("users", "posts"))]
 async fn test_list_posts(db: PgPool) {
     // This only has the happy path.
     let mut resp = http::app(db)

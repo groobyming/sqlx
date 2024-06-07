@@ -4,7 +4,7 @@ import time
 from os import path
 import shutil
 
-# base dir of sqlx workspace
+# base dir of bk-sqlx workspace
 dir_workspace = path.dirname(path.dirname(path.realpath(__file__)))
 
 # dir of tests
@@ -47,7 +47,7 @@ def start_database(driver, database, cwd):
     # find port
     res = subprocess.run(
         ["docker", "inspect", f"-f='{{{{(index (index .NetworkSettings.Ports \"{port}/tcp\") 0).HostPort}}}}'",
-         f"sqlx_{driver}_1"],
+         f"bk-sqlx_{driver}_1"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=dir_tests,
@@ -60,7 +60,7 @@ def start_database(driver, database, cwd):
 
     # need additional permissions to connect to MySQL when using SSL
     res = subprocess.run(
-        ["docker", "exec", f"sqlx_{driver}_1", "mysql", "-u", "root", "-e", "GRANT ALL PRIVILEGES ON *.* TO 'root' WITH GRANT OPTION;"],
+        ["docker", "exec", f"bk-sqlx_{driver}_1", "mysql", "-u", "root", "-e", "GRANT ALL PRIVILEGES ON *.* TO 'root' WITH GRANT OPTION;"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=dir_tests,

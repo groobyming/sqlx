@@ -23,13 +23,13 @@ This example is based on the ideas in [this blog post](https://medium.com/better
 3. Create the database.
 
     ```
-    $ sqlx db create
+    $ bk-sqlx db create
     ```
 
 4. Run sql migrations
 
     ```
-    $ sqlx migrate run
+    $ bk-sqlx migrate run
     ```
 
 ## Usage

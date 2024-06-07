@@ -1,4 +1,4 @@
-use sqlx::mysql::MySqlPool;
+use bk_sqlx::mysql::MySqlPool;
 use std::env;
 use structopt::StructOpt;
 
@@ -44,7 +44,7 @@ async fn main() -> anyhow::Result<()> {
 
 async fn add_todo(pool: &MySqlPool, description: String) -> anyhow::Result<u64> {
     // Insert the task, then obtain the ID of this row
-    let todo_id = sqlx::query!(
+    let todo_id = bk_sqlx::query!(
         r#"
 INSERT INTO todos ( description )
 VALUES ( ? )
@@ -59,7 +59,7 @@ VALUES ( ? )
 }
 
 async fn complete_todo(pool: &MySqlPool, id: u64) -> anyhow::Result<bool> {
-    let rows_affected = sqlx::query!(
+    let rows_affected = bk_sqlx::query!(
         r#"
 UPDATE todos
 SET done = TRUE
@@ -75,7 +75,7 @@ WHERE id = ?
 }
 
 async fn list_todos(pool: &MySqlPool) -> anyhow::Result<()> {
-    let recs = sqlx::query!(
+    let recs = bk_sqlx::query!(
         r#"
 SELECT id, description, done
 FROM todos

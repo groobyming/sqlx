@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sqlx::postgres::PgPool;
+use bk_sqlx::postgres::PgPool;
 use std::{env, io::Write, sync::Arc};
 use structopt::StructOpt;
 
@@ -81,7 +81,7 @@ impl PostgresTodoRepo {
 #[async_trait]
 impl TodoRepo for PostgresTodoRepo {
     async fn add_todo(&self, description: String) -> anyhow::Result<i64> {
-        let rec = sqlx::query!(
+        let rec = bk_sqlx::query!(
             r#"
 INSERT INTO todos ( description )
 VALUES ( $1 )
@@ -96,7 +96,7 @@ RETURNING id
     }
 
     async fn complete_todo(&self, id: i64) -> anyhow::Result<bool> {
-        let rows_affected = sqlx::query!(
+        let rows_affected = bk_sqlx::query!(
             r#"
 UPDATE todos
 SET done = TRUE
@@ -112,7 +112,7 @@ WHERE id = $1
     }
 
     async fn list_todos(&self) -> anyhow::Result<()> {
-        let recs = sqlx::query!(
+        let recs = bk_sqlx::query!(
             r#"
 SELECT id, description, done
 FROM todos

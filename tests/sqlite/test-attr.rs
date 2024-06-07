@@ -1,22 +1,22 @@
 // The no-arg variant is covered by other tests already.
 
-use sqlx::{Row, SqlitePool};
+use bk_sqlx::{Row, SqlitePool};
 
-const MIGRATOR: sqlx::migrate::Migrator = sqlx::migrate!("tests/sqlite/migrations");
+const MIGRATOR: bk_sqlx::migrate::Migrator = bk_sqlx::migrate!("tests/sqlite/migrations");
 
-#[sqlx::test]
-async fn it_gets_a_pool(pool: SqlitePool) -> sqlx::Result<()> {
+#[bk_sqlx::test]
+async fn it_gets_a_pool(pool: SqlitePool) -> bk_sqlx::Result<()> {
     let mut conn = pool.acquire().await?;
 
     // https://www.sqlite.org/pragma.html#pragma_database_list
-    let db = sqlx::query("PRAGMA database_list")
+    let db = bk_sqlx::query("PRAGMA database_list")
         .fetch_one(&mut *conn)
         .await?;
 
     let db_name = db.get::<String, _>(2);
 
     assert!(
-        db_name.ends_with("target/sqlx/test-dbs/sqlite_test_attr/it_gets_a_pool.sqlite"),
+        db_name.ends_with("target/bk_sqlx/test-dbs/sqlite_test_attr/it_gets_a_pool.sqlite"),
         "db_name: {:?}",
         db_name
     );
@@ -25,22 +25,22 @@ async fn it_gets_a_pool(pool: SqlitePool) -> sqlx::Result<()> {
 }
 
 // This should apply migrations and then `fixtures/users.sql`
-#[sqlx::test(migrations = "tests/sqlite/migrations", fixtures("users"))]
-async fn it_gets_users(pool: SqlitePool) -> sqlx::Result<()> {
+#[bk_sqlx::test(migrations = "tests/sqlite/migrations", fixtures("users"))]
+async fn it_gets_users(pool: SqlitePool) -> bk_sqlx::Result<()> {
     let usernames: Vec<String> =
-        sqlx::query_scalar(r#"SELECT username FROM "user" ORDER BY username"#)
+        bk_sqlx::query_scalar(r#"SELECT username FROM "user" ORDER BY username"#)
             .fetch_all(&pool)
             .await?;
 
     assert_eq!(usernames, ["alice", "bob"]);
 
-    let post_exists: bool = sqlx::query_scalar("SELECT exists(SELECT 1 FROM post)")
+    let post_exists: bool = bk_sqlx::query_scalar("SELECT exists(SELECT 1 FROM post)")
         .fetch_one(&pool)
         .await?;
 
     assert!(!post_exists);
 
-    let comment_exists: bool = sqlx::query_scalar("SELECT exists(SELECT 1 FROM comment)")
+    let comment_exists: bool = bk_sqlx::query_scalar("SELECT exists(SELECT 1 FROM comment)")
         .fetch_one(&pool)
         .await?;
 
@@ -49,10 +49,10 @@ async fn it_gets_users(pool: SqlitePool) -> sqlx::Result<()> {
     Ok(())
 }
 
-#[sqlx::test(migrations = "tests/sqlite/migrations", fixtures("users", "posts"))]
-async fn it_gets_posts(pool: SqlitePool) -> sqlx::Result<()> {
+#[bk_sqlx::test(migrations = "tests/sqlite/migrations", fixtures("users", "posts"))]
+async fn it_gets_posts(pool: SqlitePool) -> bk_sqlx::Result<()> {
     let post_contents: Vec<String> =
-        sqlx::query_scalar("SELECT content FROM post ORDER BY created_at")
+        bk_sqlx::query_scalar("SELECT content FROM post ORDER BY created_at")
             .fetch_all(&pool)
             .await?;
 
@@ -64,7 +64,7 @@ async fn it_gets_posts(pool: SqlitePool) -> sqlx::Result<()> {
         ]
     );
 
-    let comment_exists: bool = sqlx::query_scalar("SELECT exists(SELECT 1 FROM comment)")
+    let comment_exists: bool = bk_sqlx::query_scalar("SELECT exists(SELECT 1 FROM comment)")
         .fetch_one(&pool)
         .await?;
 
@@ -74,10 +74,10 @@ async fn it_gets_posts(pool: SqlitePool) -> sqlx::Result<()> {
 }
 
 // Try `migrator`
-#[sqlx::test(migrator = "MIGRATOR", fixtures("users", "posts", "comments"))]
-async fn it_gets_comments(pool: SqlitePool) -> sqlx::Result<()> {
+#[bk_sqlx::test(migrator = "MIGRATOR", fixtures("users", "posts", "comments"))]
+async fn it_gets_comments(pool: SqlitePool) -> bk_sqlx::Result<()> {
     let post_1_comments: Vec<String> =
-        sqlx::query_scalar("SELECT content FROM comment WHERE post_id = ? ORDER BY created_at")
+        bk_sqlx::query_scalar("SELECT content FROM comment WHERE post_id = ? ORDER BY created_at")
             .bind(&1)
             .fetch_all(&pool)
             .await?;
@@ -88,7 +88,7 @@ async fn it_gets_comments(pool: SqlitePool) -> sqlx::Result<()> {
     );
 
     let post_2_comments: Vec<String> =
-        sqlx::query_scalar("SELECT content FROM comment WHERE post_id = ? ORDER BY created_at")
+        bk_sqlx::query_scalar("SELECT content FROM comment WHERE post_id = ? ORDER BY created_at")
             .bind(&2)
             .fetch_all(&pool)
             .await?;

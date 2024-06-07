@@ -3,8 +3,8 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use sqlx::postgres::PgListener;
-use sqlx::PgPool;
+use bk_sqlx::postgres::PgListener;
+use bk_sqlx::PgPool;
 use std::sync::Arc;
 use std::{error::Error, io};
 use tokio::{sync::Mutex, time::Duration};
@@ -131,7 +131,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // setup postgres
     let conn_url =
         std::env::var("DATABASE_URL").expect("Env var DATABASE_URL is required for this example.");
-    let pool = sqlx::PgPool::connect(&conn_url).await?;
+    let pool = bk_sqlx::PgPool::connect(&conn_url).await?;
 
     let mut listener = PgListener::connect(&conn_url).await?;
     listener.listen("chan0").await?;
@@ -163,8 +163,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn notify(pool: &PgPool, s: &str) -> Result<(), sqlx::Error> {
-    sqlx::query(
+async fn notify(pool: &PgPool, s: &str) -> Result<(), bk_sqlx::Error> {
+    bk_sqlx::query(
         r#"
 SELECT pg_notify(chan, payload)
 FROM (VALUES ('chan0', $1)) v(chan, payload)

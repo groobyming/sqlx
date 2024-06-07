@@ -1,11 +1,11 @@
-use sqlx::migrate::Migrator;
+use bk_sqlx::migrate::Migrator;
 use std::path::Path;
 
-static EMBEDDED_SIMPLE: Migrator = sqlx::migrate!("tests/migrate/migrations_simple");
-static EMBEDDED_REVERSIBLE: Migrator = sqlx::migrate!("tests/migrate/migrations_reversible");
-static EMBEDDED_SYMLINK: Migrator = sqlx::migrate!("tests/migrate/migrations_symlink");
+static EMBEDDED_SIMPLE: Migrator = bk_sqlx::migrate!("tests/migrate/migrations_simple");
+static EMBEDDED_REVERSIBLE: Migrator = bk_sqlx::migrate!("tests/migrate/migrations_reversible");
+static EMBEDDED_SYMLINK: Migrator = bk_sqlx::migrate!("tests/migrate/migrations_symlink");
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn same_output() -> anyhow::Result<()> {
     let runtime_simple = Migrator::new(Path::new("tests/migrate/migrations_simple")).await?;
     let runtime_reversible =

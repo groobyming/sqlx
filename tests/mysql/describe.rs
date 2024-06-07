@@ -1,8 +1,8 @@
-use sqlx::mysql::MySql;
-use sqlx::{Column, Executor, Type, TypeInfo};
-use sqlx_test::new;
+use bk_sqlx::mysql::MySql;
+use bk_sqlx::{Column, Executor, Type, TypeInfo};
+use bk_sqlx_test::new;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_simple() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
@@ -26,7 +26,7 @@ async fn it_describes_simple() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_boolean() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
@@ -57,7 +57,7 @@ CREATE TEMPORARY TABLE with_bit_and_tinyint (
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn uses_alias_name() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 

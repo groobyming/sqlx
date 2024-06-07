@@ -1,29 +1,29 @@
 use futures::TryStreamExt;
-use sqlx::postgres::types::PgRange;
-use sqlx::{Connection, Executor, FromRow, Postgres};
-use sqlx_test::{new, test_type};
+use bk_sqlx::postgres::types::PgRange;
+use bk_sqlx::{Connection, Executor, FromRow, Postgres};
+use bk_sqlx_test::{new, test_type};
 use std::fmt::Debug;
 use std::ops::Bound;
 
 // Transparent types are rust-side wrappers over DB types
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(transparent)]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(transparent)]
 struct Transparent(i32);
 
-#[derive(PartialEq, Debug, sqlx::Type)]
-// https://github.com/launchbadge/sqlx/issues/2611
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+// https://github.com/launchbadge/bk_sqlx/issues/2611
 // Previously, the derive would generate a `PgHasArrayType` impl that errored on an
 // impossible-to-satisfy `where` bound. This attribute allows the user to opt-out.
-#[sqlx(transparent, no_pg_array)]
+#[bk_sqlx(transparent, no_pg_array)]
 struct TransparentArray(Vec<i64>);
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_transparent_slice_to_array() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
     let values = vec![Transparent(1), Transparent(2), Transparent(3)];
 
-    sqlx::query("SELECT 2 = ANY($1);")
+    bk_sqlx::query("SELECT 2 = ANY($1);")
         .bind(&values)
         .fetch_one(&mut conn)
         .await?;
@@ -32,7 +32,7 @@ async fn test_transparent_slice_to_array() -> anyhow::Result<()> {
 }
 
 // "Weak" enums map to an integer type indicated by #[repr]
-#[derive(PartialEq, Copy, Clone, Debug, sqlx::Type)]
+#[derive(PartialEq, Copy, Clone, Debug, bk_sqlx::Type)]
 #[repr(i32)]
 enum Weak {
     One = 0,
@@ -41,80 +41,80 @@ enum Weak {
 }
 
 // "Strong" enums can map to TEXT (25)
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "text")]
-#[sqlx(rename_all = "lowercase")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "text")]
+#[bk_sqlx(rename_all = "lowercase")]
 enum Strong {
     One,
     Two,
 
-    #[sqlx(rename = "four")]
+    #[bk_sqlx(rename = "four")]
     Three,
 }
 
 // rename_all variants
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "color_lower")]
-#[sqlx(rename_all = "lowercase")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "color_lower")]
+#[bk_sqlx(rename_all = "lowercase")]
 enum ColorLower {
     Red,
     Green,
     Blue,
 }
 
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "color_snake")]
-#[sqlx(rename_all = "snake_case")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "color_snake")]
+#[bk_sqlx(rename_all = "snake_case")]
 enum ColorSnake {
     RedGreen,
     BlueBlack,
 }
 
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "color_upper")]
-#[sqlx(rename_all = "UPPERCASE")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "color_upper")]
+#[bk_sqlx(rename_all = "UPPERCASE")]
 enum ColorUpper {
     Red,
     Green,
     Blue,
 }
 
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "color_screaming_snake")]
-#[sqlx(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "color_screaming_snake")]
+#[bk_sqlx(rename_all = "SCREAMING_SNAKE_CASE")]
 enum ColorScreamingSnake {
     RedGreen,
     BlueBlack,
 }
 
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "color_kebab_case")]
-#[sqlx(rename_all = "kebab-case")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "color_kebab_case")]
+#[bk_sqlx(rename_all = "kebab-case")]
 enum ColorKebabCase {
     RedGreen,
     BlueBlack,
 }
 
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "color_mixed_case")]
-#[sqlx(rename_all = "camelCase")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "color_mixed_case")]
+#[bk_sqlx(rename_all = "camelCase")]
 enum ColorCamelCase {
     RedGreen,
     BlueBlack,
 }
 
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "color_camel_case")]
-#[sqlx(rename_all = "PascalCase")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "color_camel_case")]
+#[bk_sqlx(rename_all = "PascalCase")]
 enum ColorPascalCase {
     RedGreen,
     BlueBlack,
 }
 
 // "Strong" enum can map to a custom type
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "mood")]
-#[sqlx(rename_all = "lowercase")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "mood")]
+#[bk_sqlx(rename_all = "lowercase")]
 enum Mood {
     Ok,
     Happy,
@@ -123,8 +123,8 @@ enum Mood {
 
 // Records must map to a custom type
 // Note that all types are types in Postgres
-#[derive(PartialEq, Debug, sqlx::Type)]
-#[sqlx(type_name = "inventory_item")]
+#[derive(PartialEq, Debug, bk_sqlx::Type)]
+#[bk_sqlx(type_name = "inventory_item")]
 struct InventoryItem {
     name: String,
     supplier_id: Option<i32>,
@@ -132,13 +132,13 @@ struct InventoryItem {
 }
 
 // Custom range type
-#[derive(sqlx::Type, Debug, PartialEq)]
-#[sqlx(type_name = "float_range")]
+#[derive(bk_sqlx::Type, Debug, PartialEq)]
+#[bk_sqlx(type_name = "float_range")]
 struct FloatRange(PgRange<f64>);
 
 // Custom domain type
-#[derive(sqlx::Type, Debug)]
-#[sqlx(type_name = "int4rangeL0pC")]
+#[derive(bk_sqlx::Type, Debug)]
+#[bk_sqlx(type_name = "int4rangeL0pC")]
 struct RangeInclusive(PgRange<i32>);
 
 test_type!(transparent<Transparent>(Postgres,
@@ -167,7 +167,7 @@ test_type!(floatrange<FloatRange>(Postgres,
     "'[1.234, 5.678]'::float_range" == FloatRange(PgRange::from((Bound::Included(1.234), Bound::Included(5.678)))),
 ));
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_enum_type() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -210,7 +210,7 @@ CREATE TABLE people (
     let mut conn = new::<Postgres>().await?;
 
     // Select from table test
-    let (people_id,): (i32,) = sqlx::query_as(
+    let (people_id,): (i32,) = bk_sqlx::query_as(
         "
 INSERT INTO people (mood)
 VALUES ($1)
@@ -225,13 +225,13 @@ RETURNING id
     conn.close().await?;
     let mut conn = new::<Postgres>().await?;
 
-    #[derive(sqlx::FromRow)]
+    #[derive(bk_sqlx::FromRow)]
     struct PeopleRow {
         id: i32,
         mood: Mood,
     }
 
-    let rec: PeopleRow = sqlx::query_as(
+    let rec: PeopleRow = bk_sqlx::query_as(
         "
 SELECT id, mood FROM people WHERE id = $1
             ",
@@ -262,7 +262,7 @@ SELECT id, mood FROM people WHERE id = $1
 
     // Normal type equivalency test
 
-    let rec: (bool, Mood) = sqlx::query_as(
+    let rec: (bool, Mood) = bk_sqlx::query_as(
         "
     SELECT $1 = 'happy'::mood, $1
             ",
@@ -274,7 +274,7 @@ SELECT id, mood FROM people WHERE id = $1
     assert!(rec.0);
     assert_eq!(rec.1, Mood::Happy);
 
-    let rec: (bool, ColorLower) = sqlx::query_as(
+    let rec: (bool, ColorLower) = bk_sqlx::query_as(
         "
     SELECT $1 = 'green'::color_lower, $1
             ",
@@ -286,7 +286,7 @@ SELECT id, mood FROM people WHERE id = $1
     assert!(rec.0);
     assert_eq!(rec.1, ColorLower::Green);
 
-    let rec: (bool, ColorSnake) = sqlx::query_as(
+    let rec: (bool, ColorSnake) = bk_sqlx::query_as(
         "
     SELECT $1 = 'red_green'::color_snake, $1
             ",
@@ -298,7 +298,7 @@ SELECT id, mood FROM people WHERE id = $1
     assert!(rec.0);
     assert_eq!(rec.1, ColorSnake::RedGreen);
 
-    let rec: (bool, ColorUpper) = sqlx::query_as(
+    let rec: (bool, ColorUpper) = bk_sqlx::query_as(
         "
     SELECT $1 = 'RED'::color_upper, $1
             ",
@@ -310,7 +310,7 @@ SELECT id, mood FROM people WHERE id = $1
     assert!(rec.0);
     assert_eq!(rec.1, ColorUpper::Red);
 
-    let rec: (bool, ColorScreamingSnake) = sqlx::query_as(
+    let rec: (bool, ColorScreamingSnake) = bk_sqlx::query_as(
         "
     SELECT $1 = 'RED_GREEN'::color_screaming_snake, $1
             ",
@@ -322,7 +322,7 @@ SELECT id, mood FROM people WHERE id = $1
     assert!(rec.0);
     assert_eq!(rec.1, ColorScreamingSnake::RedGreen);
 
-    let rec: (bool, ColorKebabCase) = sqlx::query_as(
+    let rec: (bool, ColorKebabCase) = bk_sqlx::query_as(
         "
     SELECT $1 = 'red-green'::color_kebab_case, $1
             ",
@@ -334,7 +334,7 @@ SELECT id, mood FROM people WHERE id = $1
     assert!(rec.0);
     assert_eq!(rec.1, ColorKebabCase::RedGreen);
 
-    let rec: (bool, ColorCamelCase) = sqlx::query_as(
+    let rec: (bool, ColorCamelCase) = bk_sqlx::query_as(
         "
     SELECT $1 = 'redGreen'::color_mixed_case, $1
             ",
@@ -346,7 +346,7 @@ SELECT id, mood FROM people WHERE id = $1
     assert!(rec.0);
     assert_eq!(rec.1, ColorCamelCase::RedGreen);
 
-    let rec: (bool, ColorPascalCase) = sqlx::query_as(
+    let rec: (bool, ColorPascalCase) = bk_sqlx::query_as(
         "
     SELECT $1 = 'RedGreen'::color_camel_case, $1
             ",
@@ -361,7 +361,7 @@ SELECT id, mood FROM people WHERE id = $1
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_record_type() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -371,7 +371,7 @@ async fn test_record_type() -> anyhow::Result<()> {
         price: Some(199),
     };
 
-    let rec: (bool, InventoryItem) = sqlx::query_as(
+    let rec: (bool, InventoryItem) = bk_sqlx::query_as(
         "
 SELECT $1 = ROW('fuzzy dice', 42, 199)::inventory_item, $1
         ",
@@ -387,7 +387,7 @@ SELECT $1 = ROW('fuzzy dice', 42, 199)::inventory_item, $1
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_new_type() {
     struct NewType(i32);
 
@@ -403,7 +403,7 @@ async fn test_new_type() {
         id: NewType,
     }
 
-    let res = sqlx::query_as!(NewTypeRow, r#"SELECT 1 as "id!""#)
+    let res = bk_sqlx::query_as!(NewTypeRow, r#"SELECT 1 as "id!""#)
         .fetch_one(&mut conn)
         .await
         .unwrap();
@@ -413,7 +413,7 @@ async fn test_new_type() {
         id: i32,
     }
 
-    let res = sqlx::query_as!(NormalRow, r#"SELECT 1 as "id!""#)
+    let res = bk_sqlx::query_as!(NormalRow, r#"SELECT 1 as "id!""#)
         .fetch_one(&mut conn)
         .await
         .unwrap();
@@ -422,17 +422,17 @@ async fn test_new_type() {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_from_row() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    #[derive(sqlx::FromRow)]
+    #[derive(bk_sqlx::FromRow)]
     struct Account {
         id: i32,
         name: String,
     }
 
-    let account: Account = sqlx::query_as(
+    let account: Account = bk_sqlx::query_as(
         "SELECT * from (VALUES (1, 'Herp Derpinson')) accounts(id, name) where id = $1",
     )
     .bind(1_i32)
@@ -444,13 +444,13 @@ async fn test_from_row() -> anyhow::Result<()> {
 
     // A _single_ lifetime may be used but only when using the lowest-level API currently (Query::fetch)
 
-    #[derive(sqlx::FromRow)]
+    #[derive(bk_sqlx::FromRow)]
     struct RefAccount<'a> {
         id: i32,
         name: &'a str,
     }
 
-    let mut cursor = sqlx::query(
+    let mut cursor = bk_sqlx::query(
         "SELECT * from (VALUES (1, 'Herp Derpinson')) accounts(id, name) where id = $1",
     )
     .bind(1_i32)
@@ -466,9 +466,9 @@ async fn test_from_row() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_from_row_with_keyword() -> anyhow::Result<()> {
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     struct AccountKeyword {
         r#type: i32,
         r#static: String,
@@ -479,7 +479,7 @@ async fn test_from_row_with_keyword() -> anyhow::Result<()> {
 
     let mut conn = new::<Postgres>().await?;
 
-    let account: AccountKeyword = sqlx::query_as(
+    let account: AccountKeyword = bk_sqlx::query_as(
         r#"SELECT * from (VALUES (1, 'foo', 'bar', null, null)) accounts(type, static, let, struct, name)"#
     )
     .fetch_one(&mut conn)
@@ -496,20 +496,20 @@ async fn test_from_row_with_keyword() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_from_row_with_rename() -> anyhow::Result<()> {
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     struct AccountKeyword {
-        #[sqlx(rename = "type")]
+        #[bk_sqlx(rename = "type")]
         own_type: i32,
 
-        #[sqlx(rename = "static")]
+        #[bk_sqlx(rename = "static")]
         my_static: String,
 
-        #[sqlx(rename = "let")]
+        #[bk_sqlx(rename = "let")]
         custom_let: Option<String>,
 
-        #[sqlx(rename = "struct")]
+        #[bk_sqlx(rename = "struct")]
         def_struct: Option<String>,
 
         name: Option<String>,
@@ -517,7 +517,7 @@ async fn test_from_row_with_rename() -> anyhow::Result<()> {
 
     let mut conn = new::<Postgres>().await?;
 
-    let account: AccountKeyword = sqlx::query_as(
+    let account: AccountKeyword = bk_sqlx::query_as(
         r#"SELECT * from (VALUES (1, 'foo', 'bar', null, null)) accounts(type, static, let, struct, name)"#
     )
     .fetch_one(&mut conn)
@@ -534,10 +534,10 @@ async fn test_from_row_with_rename() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_from_row_with_rename_all() -> anyhow::Result<()> {
-    #[derive(Debug, sqlx::FromRow)]
-    #[sqlx(rename_all = "camelCase")]
+    #[derive(Debug, bk_sqlx::FromRow)]
+    #[bk_sqlx(rename_all = "camelCase")]
     struct AccountKeyword {
         user_id: i32,
         user_name: String,
@@ -546,7 +546,7 @@ async fn test_from_row_with_rename_all() -> anyhow::Result<()> {
 
     let mut conn = new::<Postgres>().await?;
 
-    let account: AccountKeyword = sqlx::query_as(
+    let account: AccountKeyword = bk_sqlx::query_as(
         r#"SELECT * from (VALUES (1, 'foo', 'bar')) accounts("userId", "userName", "userSurname")"#,
     )
     .fetch_one(&mut conn)
@@ -561,14 +561,14 @@ async fn test_from_row_with_rename_all() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_from_row_tuple() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     struct Account(i32, String);
 
-    let account: Account = sqlx::query_as(
+    let account: Account = bk_sqlx::query_as(
         "SELECT * from (VALUES (1, 'Herp Derpinson')) accounts(id, name) where id = $1",
     )
     .bind(1_i32)
@@ -580,10 +580,10 @@ async fn test_from_row_tuple() -> anyhow::Result<()> {
 
     // A _single_ lifetime may be used but only when using the lowest-level API currently (Query::fetch)
 
-    #[derive(sqlx::FromRow)]
+    #[derive(bk_sqlx::FromRow)]
     struct RefAccount<'a>(i32, &'a str);
 
-    let mut cursor = sqlx::query(
+    let mut cursor = bk_sqlx::query(
         "SELECT * from (VALUES (1, 'Herp Derpinson')) accounts(id, name) where id = $1",
     )
     .bind(1_i32)
@@ -599,18 +599,18 @@ async fn test_from_row_tuple() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_default() -> anyhow::Result<()> {
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     struct HasDefault {
         not_default: i32,
-        #[sqlx(default)]
+        #[bk_sqlx(default)]
         default: Option<i32>,
     }
 
     let mut conn = new::<Postgres>().await?;
 
-    let has_default: HasDefault = sqlx::query_as(r#"SELECT 1 AS not_default"#)
+    let has_default: HasDefault = bk_sqlx::query_as(r#"SELECT 1 AS not_default"#)
         .fetch_one(&mut conn)
         .await?;
     println!("{has_default:?}");
@@ -622,10 +622,10 @@ async fn test_default() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_struct_default() -> anyhow::Result<()> {
-    #[derive(Debug, sqlx::FromRow)]
-    #[sqlx(default)]
+    #[derive(Debug, bk_sqlx::FromRow)]
+    #[bk_sqlx(default)]
     struct HasDefault {
         not_default: Option<i32>,
         default_a: Option<String>,
@@ -644,7 +644,7 @@ async fn test_struct_default() -> anyhow::Result<()> {
 
     let mut conn = new::<Postgres>().await?;
 
-    let has_default: HasDefault = sqlx::query_as(r#"SELECT 1 AS not_default"#)
+    let has_default: HasDefault = bk_sqlx::query_as(r#"SELECT 1 AS not_default"#)
         .fetch_one(&mut conn)
         .await?;
     println!("{has_default:?}");
@@ -657,32 +657,32 @@ async fn test_struct_default() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_flatten() -> anyhow::Result<()> {
-    #[derive(Debug, Default, sqlx::FromRow)]
+    #[derive(Debug, Default, bk_sqlx::FromRow)]
     struct AccountDefault {
         default: Option<i32>,
     }
 
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     struct UserInfo {
         name: String,
         surname: String,
     }
 
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     struct AccountKeyword {
         id: i32,
-        #[sqlx(flatten)]
+        #[bk_sqlx(flatten)]
         info: UserInfo,
-        #[sqlx(default)]
-        #[sqlx(flatten)]
+        #[bk_sqlx(default)]
+        #[bk_sqlx(flatten)]
         default: AccountDefault,
     }
 
     let mut conn = new::<Postgres>().await?;
 
-    let account: AccountKeyword = sqlx::query_as(
+    let account: AccountKeyword = bk_sqlx::query_as(
         r#"SELECT * from (VALUES (1, 'foo', 'bar')) accounts("id", "name", "surname")"#,
     )
     .fetch_one(&mut conn)
@@ -698,23 +698,23 @@ async fn test_flatten() -> anyhow::Result<()> {
 }
 
 #[cfg(feature = "macros")]
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_skip() -> anyhow::Result<()> {
-    #[derive(Debug, Default, sqlx::FromRow)]
+    #[derive(Debug, Default, bk_sqlx::FromRow)]
     struct AccountDefault {
         default: Option<i32>,
     }
 
-    #[derive(Debug, sqlx::FromRow)]
+    #[derive(Debug, bk_sqlx::FromRow)]
     struct AccountKeyword {
         id: i32,
-        #[sqlx(skip)]
+        #[bk_sqlx(skip)]
         default: AccountDefault,
     }
 
     let mut conn = new::<Postgres>().await?;
 
-    let account: AccountKeyword = sqlx::query_as(r#"SELECT * from (VALUES (1)) accounts("id")"#)
+    let account: AccountKeyword = bk_sqlx::query_as(r#"SELECT * from (VALUES (1)) accounts("id")"#)
         .fetch_one(&mut conn)
         .await?;
     println!("{account:?}");

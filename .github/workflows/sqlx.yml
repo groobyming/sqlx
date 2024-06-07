@@ -52,7 +52,7 @@ jobs:
         with:
           command: check
           args: >
-            --manifest-path sqlx-core/Cargo.toml
+            --manifest-path bk-sqlx-core/Cargo.toml
             --no-default-features
             --features json,offline,migrate,_rt-${{ matrix.runtime }},_tls-${{ matrix.tls }}
         env:
@@ -91,7 +91,7 @@ jobs:
         with:
           command: test
           args: >
-            --manifest-path sqlx-core/Cargo.toml
+            --manifest-path bk-sqlx-core/Cargo.toml
             --features json,_rt-${{ matrix.runtime }},_tls-${{ matrix.tls }}
 
   cli-test:
@@ -114,7 +114,7 @@ jobs:
         with:
           command: test
           args: >
-            --manifest-path sqlx-cli/Cargo.toml
+            --manifest-path bk-sqlx-cli/Cargo.toml
 
   cli:
     name: CLI Binaries
@@ -127,14 +127,14 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             args: --features openssl-vendored
-            bin: target/debug/cargo-sqlx
+            bin: target/debug/cargo-bk-sqlx
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            bin: target/debug/cargo-sqlx.exe
+            bin: target/debug/cargo-bk-sqlx.exe
           # FIXME: macOS build fails because of missing pin-project-internal
 #          - os: macOS-latest
 #            target: x86_64-apple-darwin
-#            bin: target/debug/cargo-sqlx
+#            bin: target/debug/cargo-bk-sqlx
 
     steps:
       - uses: actions/checkout@v2
@@ -153,11 +153,11 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --manifest-path sqlx-cli/Cargo.toml --bin cargo-sqlx ${{ matrix.args }}
+          args: --manifest-path bk-sqlx-cli/Cargo.toml --bin cargo-bk-sqlx ${{ matrix.args }}
 
       - uses: actions/upload-artifact@v2
         with:
-          name: cargo-sqlx-${{ matrix.target }}
+          name: cargo-bk-sqlx-${{ matrix.target }}
           path: ${{ matrix.bin }}
 
   sqlite:
@@ -185,7 +185,7 @@ jobs:
       - run: echo "using ${DATABASE_URL}"
 
       # Create data dir for offline mode
-      - run: mkdir .sqlx
+      - run: mkdir .bk-sqlx
 
       - uses: actions-rs/cargo@v1
         with:
@@ -197,12 +197,12 @@ jobs:
             --test-threads=1
         env:
           DATABASE_URL: sqlite:tests/sqlite/sqlite.db
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: --cfg sqlite_ipaddr --cfg sqlite_test_sqlcipher
           LD_LIBRARY_PATH: /tmp/sqlite3-lib
 
       # Remove test artifacts
-      - run: cargo clean -p sqlx
+      - run: cargo clean -p bk-sqlx
 
       # Build the macros-test in offline mode (omit DATABASE_URL)
       - uses: actions-rs/cargo@v1
@@ -214,7 +214,7 @@ jobs:
             --features any,macros,sqlite,_unstable-all-types,runtime-${{ matrix.runtime }}
         env:
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: -D warnings --cfg sqlite_ipaddr
           LD_LIBRARY_PATH: /tmp/sqlite3-lib
 
@@ -229,7 +229,7 @@ jobs:
         env:
           DATABASE_URL: sqlite://tests/sqlite/sqlite.db
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: --cfg sqlite_ipaddr
           LD_LIBRARY_PATH: /tmp/sqlite3-lib
 
@@ -270,7 +270,7 @@ jobs:
           docker exec postgres_${{ matrix.postgres }} bash -c "until pg_isready; do sleep 1; done"
 
       # Create data dir for offline mode
-      - run: mkdir .sqlx
+      - run: mkdir .bk-sqlx
 
       - uses: actions-rs/cargo@v1
         with:
@@ -279,8 +279,8 @@ jobs:
             --no-default-features
             --features any,postgres,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/sqlx
-          SQLX_OFFLINE_DIR: .sqlx
+          DATABASE_URL: postgres://postgres:password@localhost:5432/bk-sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           # FIXME: needed to disable `ltree` tests in Postgres 9.6
           # but `PgLTree` should just fall back to text format
           RUSTFLAGS: --cfg postgres_${{ matrix.postgres }}
@@ -293,14 +293,14 @@ jobs:
             --no-default-features
             --features any,postgres,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/sqlx?sslmode=verify-ca&sslrootcert=.%2Ftests%2Fcerts%2Fca.crt
-          SQLX_OFFLINE_DIR: .sqlx
+          DATABASE_URL: postgres://postgres:password@localhost:5432/bk-sqlx?sslmode=verify-ca&sslrootcert=.%2Ftests%2Fcerts%2Fca.crt
+          SQLX_OFFLINE_DIR: .bk-sqlx
           # FIXME: needed to disable `ltree` tests in Postgres 9.6
           # but `PgLTree` should just fall back to text format
           RUSTFLAGS: --cfg postgres_${{ matrix.postgres }}
 
       # Remove test artifacts
-      - run: cargo clean -p sqlx
+      - run: cargo clean -p bk-sqlx
 
       # Build the macros-test in offline mode (omit DATABASE_URL)
       - uses: actions-rs/cargo@v1
@@ -312,7 +312,7 @@ jobs:
             --features any,postgres,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           # FIXME: needed to disable `ltree` tests in Postgres 9.6
           # but `PgLTree` should just fall back to text format
           RUSTFLAGS: -D warnings --cfg postgres_${{ matrix.postgres }}
@@ -326,9 +326,9 @@ jobs:
             --test postgres-macros
             --features any,postgres,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: postgres://postgres:password@localhost:5432/sqlx
+          DATABASE_URL: postgres://postgres:password@localhost:5432/bk-sqlx
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           # FIXME: needed to disable `ltree` tests in Postgres 9.6
           # but `PgLTree` should just fall back to text format
           RUSTFLAGS: --cfg postgres_${{ matrix.postgres }}
@@ -348,7 +348,7 @@ jobs:
             --no-default-features
             --features any,postgres,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: postgres://postgres@localhost:5432/sqlx?sslmode=verify-ca&sslrootcert=.%2Ftests%2Fcerts%2Fca.crt&sslkey=.%2Ftests%2Fkeys%2Fclient.key&sslcert=.%2Ftests%2Fcerts%2Fclient.crt
+          DATABASE_URL: postgres://postgres@localhost:5432/bk-sqlx?sslmode=verify-ca&sslrootcert=.%2Ftests%2Fcerts%2Fca.crt&sslkey=.%2Ftests%2Fkeys%2Fclient.key&sslcert=.%2Ftests%2Fcerts%2Fclient.crt
           # FIXME: needed to disable `ltree` tests in Postgres 9.6
           # but `PgLTree` should just fall back to text format
           RUSTFLAGS: --cfg postgres_${{ matrix.postgres }}_client_ssl
@@ -385,7 +385,7 @@ jobs:
       - run: sleep 60
 
       # Create data dir for offline mode
-      - run: mkdir .sqlx
+      - run: mkdir .bk-sqlx
 
       - uses: actions-rs/cargo@v1
         with:
@@ -394,8 +394,8 @@ jobs:
             --no-default-features
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: mysql://root:password@localhost:3306/sqlx?ssl-mode=disabled
-          SQLX_OFFLINE_DIR: .sqlx
+          DATABASE_URL: mysql://root:password@localhost:3306/bk-sqlx?ssl-mode=disabled
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: --cfg mysql_${{ matrix.mysql }}
 
       # MySQL 5.7 supports TLS but not TLSv1.3 as required by RusTLS.
@@ -407,12 +407,12 @@ jobs:
             --no-default-features
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: mysql://root:password@localhost:3306/sqlx
-          SQLX_OFFLINE_DIR: .sqlx
+          DATABASE_URL: mysql://root:password@localhost:3306/bk-sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: --cfg mysql_${{ matrix.mysql }}
 
       # Remove test artifacts
-      - run: cargo clean -p sqlx
+      - run: cargo clean -p bk-sqlx
 
       # Build the macros-test in offline mode (omit DATABASE_URL)
       - uses: actions-rs/cargo@v1
@@ -424,7 +424,7 @@ jobs:
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: -D warnings --cfg mysql_${{ matrix.mysql }}
 
       # Test macros in offline mode (still needs DATABASE_URL to run)
@@ -438,9 +438,9 @@ jobs:
             --test mysql-macros
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: mysql://root:password@localhost:3306/sqlx
+          DATABASE_URL: mysql://root:password@localhost:3306/bk-sqlx
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: --cfg mysql_${{ matrix.mysql }}
 
       # client SSL authentication
@@ -459,7 +459,7 @@ jobs:
             --no-default-features
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: mysql://root@localhost:3306/sqlx?sslmode=verify_ca&ssl-ca=.%2Ftests%2Fcerts%2Fca.crt&ssl-key=.%2Ftests%2Fkeys%2Fclient.key&ssl-cert=.%2Ftests%2Fcerts%2Fclient.crt
+          DATABASE_URL: mysql://root@localhost:3306/bk-sqlx?sslmode=verify_ca&ssl-ca=.%2Ftests%2Fcerts%2Fca.crt&ssl-key=.%2Ftests%2Fkeys%2Fclient.key&ssl-cert=.%2Ftests%2Fcerts%2Fclient.crt
           RUSTFLAGS: --cfg mysql_${{ matrix.mysql }}
 
   mariadb:
@@ -471,7 +471,7 @@ jobs:
         runtime: [async-std, tokio]
         tls: [native-tls, rustls, none]
         exclude:
-          # FIXME: `rustls` cannot accept MariaDB's new self-signed certificates: https://github.com/launchbadge/sqlx/issues/3091
+          # FIXME: `rustls` cannot accept MariaDB's new self-signed certificates: https://github.com/launchbadge/bk-sqlx/issues/3091
           - mariadb: verylatest
             tls: rustls
     needs: check
@@ -498,7 +498,7 @@ jobs:
       - run: sleep 30
 
       # Create data dir for offline mode
-      - run: mkdir .sqlx
+      - run: mkdir .bk-sqlx
 
       - uses: actions-rs/cargo@v1
         with:
@@ -507,12 +507,12 @@ jobs:
             --no-default-features
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: mysql://root:password@localhost:3306/sqlx
-          SQLX_OFFLINE_DIR: .sqlx
+          DATABASE_URL: mysql://root:password@localhost:3306/bk-sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: --cfg mariadb_${{ matrix.mariadb }}
 
       # Remove test artifacts
-      - run: cargo clean -p sqlx
+      - run: cargo clean -p bk-sqlx
 
       # Build the macros-test in offline mode (omit DATABASE_URL)
       - uses: actions-rs/cargo@v1
@@ -524,7 +524,7 @@ jobs:
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: -D warnings --cfg mariadb_${{ matrix.mariadb }}
 
       # Test macros in offline mode (still needs DATABASE_URL to run)
@@ -536,9 +536,9 @@ jobs:
             --test mysql-macros
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: mysql://root:password@localhost:3306/sqlx
+          DATABASE_URL: mysql://root:password@localhost:3306/bk-sqlx
           SQLX_OFFLINE: true
-          SQLX_OFFLINE_DIR: .sqlx
+          SQLX_OFFLINE_DIR: .bk-sqlx
           RUSTFLAGS: --cfg mariadb_${{ matrix.mariadb }}
 
       # client SSL authentication
@@ -556,5 +556,5 @@ jobs:
             --no-default-features
             --features any,mysql,macros,_unstable-all-types,runtime-${{ matrix.runtime }},tls-${{ matrix.tls }}
         env:
-          DATABASE_URL: mysql://root@localhost:3306/sqlx?sslmode=verify_ca&ssl-ca=.%2Ftests%2Fcerts%2Fca.crt&ssl-key=.%2Ftests%2Fkeys%2Fclient.key&ssl-cert=.%2Ftests%2Fcerts%2Fclient.crt
+          DATABASE_URL: mysql://root@localhost:3306/bk-sqlx?sslmode=verify_ca&ssl-ca=.%2Ftests%2Fcerts%2Fca.crt&ssl-key=.%2Ftests%2Fkeys%2Fclient.key&ssl-cert=.%2Ftests%2Fcerts%2Fclient.crt
           RUSTFLAGS: --cfg mariadb_${{ matrix.mariadb }}

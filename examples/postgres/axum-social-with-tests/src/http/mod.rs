@@ -1,6 +1,6 @@
 use anyhow::Context;
 use axum::{Extension, Router};
-use sqlx::PgPool;
+use bk_sqlx::PgPool;
 
 mod error;
 

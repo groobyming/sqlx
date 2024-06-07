@@ -17,7 +17,7 @@ do
   if [ "$CURSOR" != "null" ];
   then
     PAGE=$(gh api graphql -f after="$CURSOR" -f query='query($after: String) {
-               repository(owner: "launchbadge", name: "sqlx") {
+               repository(owner: "launchbadge", name: "bk-sqlx") {
                  pullRequests(first:100,orderBy: {field:CREATED_AT, direction:ASC},states:MERGED, after: $after) {
                    nodes {
                      number
@@ -35,7 +35,7 @@ do
              }');
   else
         PAGE=$(gh api graphql -f query='query {
-                   repository(owner: "launchbadge", name: "sqlx") {
+                   repository(owner: "launchbadge", name: "bk-sqlx") {
                      pullRequests(first:100,orderBy: {field:CREATED_AT, direction:ASC},states:MERGED) {
                        nodes {
                          number

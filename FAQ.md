@@ -15,7 +15,7 @@ As a rule, however, we only officially support the range of versions for each da
     * However, its Wikipedia page helpfully tracks its versions and their announced EOL dates: https://en.wikipedia.org/wiki/MySQL#Release_history
 * SQLite is easy as only SQLite 3 is supported and the current version depends on the version of the `libsqlite3-sys` crate being used.
 
-For each database and where applicable, we test against the latest and oldest versions that we intend to support. You can see the current versions being tested against by looking at our CI config: https://github.com/launchbadge/sqlx/blob/main/.github/workflows/sqlx.yml#L168
+For each database and where applicable, we test against the latest and oldest versions that we intend to support. You can see the current versions being tested against by looking at our CI config: https://github.com/launchbadge/bk-sqlx/blob/main/.github/workflows/bk-sqlx.yml#L168
 
 -------------------------------------------------------------------
 ### What versions of Rust does SQLx support? What is SQLx's MSRV\*?
@@ -74,7 +74,7 @@ https://github.com/rustls/rustls/issues/893
 ### How do Query Parameters work?
 ### Why does SQLx use Prepared Statements for most queries?
 ### Can I Use Query Parameters to add conditional SQL to my query?
-### Why can't I use DDL (e.g. `CREATE TABLE`, `ALTER TABLE`, etc.) with the `sqlx::query*()` functions or `sqlx::query*!()` macros?
+### Why can't I use DDL (e.g. `CREATE TABLE`, `ALTER TABLE`, etc.) with the `bk-sqlx::query*()` functions or `bk-sqlx::query*!()` macros?
 
 These questions can all be answered by a thorough explanation of prepared statements. Feel free to skip the parts you already know.
 
@@ -188,13 +188,13 @@ so the overhead of parsing and generating a query plan is amortized.
 Query parameters are also usually transmitted in a compact binary format, which saves bandwidth over having to send them as human-readable strings.
 
 Because of the obvious security and performance benefits of prepared statements, the design of SQLx tries to make them as easy to use and transparent as possible.
-The `sqlx::query*()` family of functions, as well as the `sqlx::query*!()` macros, will always prefer prepared statements. This was an explicit goal from day one.
+The `bk-sqlx::query*()` family of functions, as well as the `bk-sqlx::query*!()` macros, will always prefer prepared statements. This was an explicit goal from day one.
 
 SQLx will **never** substitute query parameters for values on the client-side, it will always let the database server handle that. We have concepts for making certain usage patterns easier, 
 like expanding a dynamic list of parameters (e.g. `?, ?, ?, ?, ...`) since MySQL and SQLite don't really support arrays, but will never simply format data into a query implicitly.
 
 Our pervasive use of prepared statements can cause some problems with third-party database implementations, e.g. projects like CockroachDB or PGBouncer that support the Postgres protocol but have their own semantics.
-In this case, you might try setting [`.persistent(false)`](https://docs.rs/sqlx/latest/sqlx/query/struct.Query.html#method.persistent) before executing a query, which will cause the connection not to retain
+In this case, you might try setting [`.persistent(false)`](https://docs.rs/bk-sqlx/latest/bk-sqlx/query/struct.Query.html#method.persistent) before executing a query, which will cause the connection not to retain
 the prepared statement after executing it.
 
 Not all SQL statements are allowed in prepared statements, either. 
@@ -204,12 +204,12 @@ Consult your database manual for details.
 To execute DDL requires using a different API than `query*()` or `query*!()` in SQLx. 
 Ideally, we'd like to encourage you to use SQLx's built-in support for migrations (though that could be better documented, we'll get to it).
 However, in the event that isn't feasible, or you have different needs, you can execute pretty much any statement,
-including multiple statements separated by semicolons (`;`), by directly invoking methods of the [`Executor` trait](https://docs.rs/sqlx/latest/sqlx/trait.Executor.html#method.execute)
+including multiple statements separated by semicolons (`;`), by directly invoking methods of the [`Executor` trait](https://docs.rs/bk-sqlx/latest/bk-sqlx/trait.Executor.html#method.execute)
 on any type that implements it, and passing your query string, e.g.:
 
 ```rust
-use sqlx::postgres::PgConnection;
-use sqlx::Executor;
+use bk-sqlx::postgres::PgConnection;
+use bk-sqlx::Executor;
 
 let mut conn: PgConnection = connect().await?;
 
@@ -240,7 +240,7 @@ However, **in Postgres** you can work around this limitation by binding the arra
 let db: PgPool = /* ... */;
 let foo_ids: Vec<i64> = vec![/* ... */];
 
-let foos = sqlx::query!(
+let foos = bk-sqlx::query!(
     "SELECT * FROM foo WHERE id = ANY($1)",
     // a bug of the parameter typechecking code requires all array parameters to be slices
     &foo_ids[..]
@@ -277,7 +277,7 @@ it will treat it as a temporary table:
 ```rust
 let foo_texts: Vec<String> = vec![/* ... */];
 
-sqlx::query!(
+bk-sqlx::query!(
     // because `UNNEST()` is a generic function, Postgres needs the cast on the parameter here
     // in order to know what type to expect there when preparing the query
     "INSERT INTO foo(text_column) SELECT * FROM UNNEST($1::text[])",
@@ -300,7 +300,7 @@ let foo_opt_texts: Vec<Option<String>> = vec![/* ... */];
 let foo_opt_naive_dts: Vec<Option<NaiveDateTime>> = vec![/* ... */]
 
 
-sqlx::query!(
+bk-sqlx::query!(
     "
         INSERT INTO foo(text_column, bool_column, int_column, opt_text_column, opt_naive_dt_column) 
         SELECT * FROM UNNEST($1::text[], $2::bool[], $3::int8[], $4::text[], $5::timestamp[])
@@ -344,28 +344,28 @@ See Also:
 ----
 ### How do I compile with the macros without needing a database, e.g. in CI?
 
-The macros support an offline mode which saves data for existing queries to a `.sqlx` directory,
+The macros support an offline mode which saves data for existing queries to a `.bk-sqlx` directory,
 so the macros can just read those instead of talking to a database.
 
 See the following:
 
-* [the docs for `query!()`](https://docs.rs/sqlx/0.5.5/sqlx/macro.query.html#offline-mode-requires-the-offline-feature)
-* [the README for `sqlx-cli`](sqlx-cli/README.md#enable-building-in-offline-mode-with-query)
+* [the docs for `query!()`](https://docs.rs/bk-sqlx/0.5.5/bk-sqlx/macro.query.html#offline-mode-requires-the-offline-feature)
+* [the README for `bk-sqlx-cli`](bk-sqlx-cli/README.md#enable-building-in-offline-mode-with-query)
 
-To keep `.sqlx` up-to-date you need to run `cargo sqlx prepare` before every commit that
+To keep `.bk-sqlx` up-to-date you need to run `cargo bk-sqlx prepare` before every commit that
 adds or changes a query; you can do this with a Git pre-commit hook:
 
 ```shell
-$ echo "cargo sqlx prepare > /dev/null 2>&1; git add .sqlx > /dev/null" > .git/hooks/pre-commit 
+$ echo "cargo bk-sqlx prepare > /dev/null 2>&1; git add .bk-sqlx > /dev/null" > .git/hooks/pre-commit 
 ```
 
 Note that this may make committing take some time as it'll cause your project to be recompiled, and
-as an ergonomic choice it does _not_ block committing if `cargo sqlx prepare` fails.
+as an ergonomic choice it does _not_ block committing if `cargo bk-sqlx prepare` fails.
 
 We're working on a way for the macros to save their data to the filesystem automatically which should be part of SQLx 0.7,
 so your pre-commit hook would then just need to stage the changed files. This can be enabled by creating a directory 
 and setting the `SQLX_OFFLINE_DIR` environment variable to it before compiling. 
-However, this behaviour is not considered stable and it is still recommended to use `cargo sqlx prepare`.
+However, this behaviour is not considered stable and it is still recommended to use `cargo bk-sqlx prepare`.
 
 ----
 
@@ -417,11 +417,11 @@ Even Sisyphus would pity us.
 
 ----
 
-### Why does my project using sqlx query macros not build on docs.rs?
+### Why does my project using bk-sqlx query macros not build on docs.rs?
 
-Docs.rs doesn't have access to your database, so it needs to be provided prepared queries in a `.sqlx` directory and be instructed to set the `SQLX_OFFLINE` environment variable to true while compiling your project. Luckily for us, docs.rs creates a `DOCS_RS` environment variable that we can access in a custom build script to achieve this functionality.
+Docs.rs doesn't have access to your database, so it needs to be provided prepared queries in a `.bk-sqlx` directory and be instructed to set the `SQLX_OFFLINE` environment variable to true while compiling your project. Luckily for us, docs.rs creates a `DOCS_RS` environment variable that we can access in a custom build script to achieve this functionality.
 
-To do so, first, make sure that you have run `cargo sqlx prepare` to generate a `.sqlx` directory in your project.
+To do so, first, make sure that you have run `cargo bk-sqlx prepare` to generate a `.bk-sqlx` directory in your project.
 
 Next, create a file called `build.rs` in the root of your project directory (at the same level as `Cargo.toml`). Add the following code to it:
 ```rs

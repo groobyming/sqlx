@@ -1,10 +1,10 @@
 use futures::TryStreamExt;
-use sqlx::mysql::{MySql, MySqlConnection, MySqlPool, MySqlPoolOptions, MySqlRow};
-use sqlx::{Column, Connection, Executor, Row, Statement, TypeInfo};
-use sqlx_test::{new, setup_if_needed};
+use bk_sqlx::mysql::{MySql, MySqlConnection, MySqlPool, MySqlPoolOptions, MySqlRow};
+use bk_sqlx::{Column, Connection, Executor, Row, Statement, TypeInfo};
+use bk_sqlx_test::{new, setup_if_needed};
 use std::env;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_connects() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
@@ -14,11 +14,11 @@ async fn it_connects() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_maths() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
-    let value = sqlx::query("select 1 + CAST(? AS SIGNED)")
+    let value = bk_sqlx::query("select 1 + CAST(? AS SIGNED)")
         .bind(5_i32)
         .try_map(|row: MySqlRow| row.try_get::<i32, _>(0))
         .fetch_one(&mut conn)
@@ -29,21 +29,21 @@ async fn it_maths() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_fail_at_querying() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
-    let _ = conn.execute(sqlx::query("SELECT 1")).await?;
+    let _ = conn.execute(bk_sqlx::query("SELECT 1")).await?;
 
     // we are testing that this does not cause a panic!
     let _ = conn
-        .execute(sqlx::query("SELECT non_existence_table"))
+        .execute(bk_sqlx::query("SELECT non_existence_table"))
         .await;
 
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_executes() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
@@ -56,7 +56,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);
         .await?;
 
     for index in 1..=10_i32 {
-        let done = sqlx::query("INSERT INTO users (id) VALUES (?)")
+        let done = bk_sqlx::query("INSERT INTO users (id) VALUES (?)")
             .bind(index)
             .execute(&mut conn)
             .await?;
@@ -64,7 +64,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);
         assert_eq!(done.rows_affected(), 1);
     }
 
-    let sum: i32 = sqlx::query("SELECT id FROM users")
+    let sum: i32 = bk_sqlx::query("SELECT id FROM users")
         .try_map(|row: MySqlRow| row.try_get::<i32, _>(0))
         .fetch(&mut conn)
         .try_fold(0_i32, |acc, x| async move { Ok(acc + x) })
@@ -75,7 +75,7 @@ CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_executes_with_pool() -> anyhow::Result<()> {
     let pool: MySqlPool = MySqlPoolOptions::new()
         .min_connections(2)
@@ -98,7 +98,7 @@ async fn it_executes_with_pool() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_works_with_cache_disabled() -> anyhow::Result<()> {
     setup_if_needed();
 
@@ -109,7 +109,7 @@ async fn it_works_with_cache_disabled() -> anyhow::Result<()> {
     let mut conn = MySqlConnection::connect(url.as_ref()).await?;
 
     for index in 1..=10_i32 {
-        let _ = sqlx::query("SELECT ?")
+        let _ = bk_sqlx::query("SELECT ?")
             .bind(index)
             .execute(&mut conn)
             .await?;
@@ -118,7 +118,7 @@ async fn it_works_with_cache_disabled() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_drops_results_in_affected_rows() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
@@ -133,11 +133,11 @@ async fn it_drops_results_in_affected_rows() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_selects_null() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
-    let (val,): (Option<i32>,) = sqlx::query_as("SELECT NULL").fetch_one(&mut conn).await?;
+    let (val,): (Option<i32>,) = bk_sqlx::query_as("SELECT NULL").fetch_one(&mut conn).await?;
 
     assert!(val.is_none());
 
@@ -148,17 +148,17 @@ async fn it_selects_null() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_fetch_one_and_ping() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
-    let (_id,): (i32,) = sqlx::query_as("SELECT 1 as id")
+    let (_id,): (i32,) = bk_sqlx::query_as("SELECT 1 as id")
         .fetch_one(&mut conn)
         .await?;
 
     conn.ping().await?;
 
-    let (_id,): (i32,) = sqlx::query_as("SELECT 1 as id")
+    let (_id,): (i32,) = bk_sqlx::query_as("SELECT 1 as id")
         .fetch_one(&mut conn)
         .await?;
 
@@ -166,7 +166,7 @@ async fn it_can_fetch_one_and_ping() -> anyhow::Result<()> {
 }
 
 /// Test that we can interleave reads and writes to the database in one simple query.
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_interleaves_reads_and_writes() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
@@ -200,12 +200,12 @@ SELECT id, text FROM messages;
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_caches_statements() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
     for i in 0..2 {
-        let row = sqlx::query("SELECT ? AS val")
+        let row = bk_sqlx::query("SELECT ? AS val")
             .bind(i)
             .persistent(true)
             .fetch_one(&mut conn)
@@ -221,7 +221,7 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     assert_eq!(0, conn.cached_statements_size());
 
     for i in 0..2 {
-        let row = sqlx::query("SELECT ? AS val")
+        let row = bk_sqlx::query("SELECT ? AS val")
             .bind(i)
             .persistent(false)
             .fetch_one(&mut conn)
@@ -237,14 +237,14 @@ async fn it_caches_statements() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_closes_statements_with_persistent_disabled() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
     let old_statement_count = select_statement_count(&mut conn).await.unwrap_or_default();
 
     for i in 0..2 {
-        let row = sqlx::query("SELECT ? AS val")
+        let row = bk_sqlx::query("SELECT ? AS val")
             .bind(i)
             .persistent(false)
             .fetch_one(&mut conn)
@@ -262,7 +262,7 @@ async fn it_closes_statements_with_persistent_disabled() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_closes_statements_with_cache_disabled() -> anyhow::Result<()> {
     setup_if_needed();
 
@@ -275,7 +275,7 @@ async fn it_closes_statements_with_cache_disabled() -> anyhow::Result<()> {
     let old_statement_count = select_statement_count(&mut conn).await.unwrap_or_default();
 
     for index in 1..=10_i32 {
-        let _ = sqlx::query("SELECT ?")
+        let _ = bk_sqlx::query("SELECT ?")
             .bind(index)
             .execute(&mut conn)
             .await?;
@@ -288,11 +288,11 @@ async fn it_closes_statements_with_cache_disabled() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_bind_null_and_non_null_issue_540() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
-    let row = sqlx::query("SELECT ?, ?")
+    let row = bk_sqlx::query("SELECT ?, ?")
         .bind(50_i32)
         .bind(None::<i32>)
         .fetch_one(&mut conn)
@@ -307,11 +307,11 @@ async fn it_can_bind_null_and_non_null_issue_540() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_bind_only_null_issue_540() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
-    let row = sqlx::query("SELECT ?")
+    let row = bk_sqlx::query("SELECT ?")
         .bind(None::<i32>)
         .fetch_one(&mut conn)
         .await?;
@@ -323,11 +323,11 @@ async fn it_can_bind_only_null_issue_540() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_bind_and_return_years() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
 
-    sqlx::raw_sql(
+    bk_sqlx::raw_sql(
         r#"
 CREATE TEMPORARY TABLE too_many_years (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -338,7 +338,7 @@ CREATE TEMPORARY TABLE too_many_years (
     .execute(&mut conn)
     .await?;
 
-    sqlx::query(
+    bk_sqlx::query(
         r#"
 INSERT INTO too_many_years ( the ) VALUES ( ? );
     "#,
@@ -347,7 +347,7 @@ INSERT INTO too_many_years ( the ) VALUES ( ? );
     .execute(&mut conn)
     .await?;
 
-    let the: u16 = sqlx::query_scalar("SELECT the FROM too_many_years")
+    let the: u16 = bk_sqlx::query_scalar("SELECT the FROM too_many_years")
         .fetch_one(&mut conn)
         .await?;
 
@@ -356,12 +356,12 @@ INSERT INTO too_many_years ( the ) VALUES ( ? );
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_prepare_then_execute() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
     let mut tx = conn.begin().await?;
 
-    let tweet_id: u64 = sqlx::query("INSERT INTO tweet ( text ) VALUES ( 'Hello, World' )")
+    let tweet_id: u64 = bk_sqlx::query("INSERT INTO tweet ( text ) VALUES ( 'Hello, World' )")
         .execute(&mut *tx)
         .await?
         .last_insert_id();
@@ -407,18 +407,18 @@ async fn test_issue_622() -> anyhow::Result<()> {
     for i in 0..3 {
         let pool = pool.clone();
 
-        handles.push(sqlx_core::rt::spawn(async move {
+        handles.push(bk_sqlx_core::rt::spawn(async move {
             {
                 let mut conn = pool.acquire().await.unwrap();
 
-                let _ = sqlx::query("SELECT 1").fetch_one(&mut *conn).await.unwrap();
+                let _ = bk_sqlx::query("SELECT 1").fetch_one(&mut *conn).await.unwrap();
 
                 // conn gets dropped here and should be returned to the pool
             }
 
             // (do some other work here without holding on to a connection)
             // this actually fixes the issue, depending on the timeout used
-            // sqlx_core::rt::sleep(Duration::from_millis(500)).await;
+            // bk_sqlx_core::rt::sleep(Duration::from_millis(500)).await;
 
             {
                 let start = Instant::now();
@@ -440,26 +440,26 @@ async fn test_issue_622() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     let mut conn = new::<MySql>().await?;
-    sqlx::raw_sql("CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);")
+    bk_sqlx::raw_sql("CREATE TEMPORARY TABLE users (id INTEGER PRIMARY KEY);")
         .execute(&mut conn)
         .await?;
 
     // begin .. rollback
 
     let mut tx = conn.begin().await?;
-    sqlx::query("INSERT INTO users (id) VALUES (?)")
+    bk_sqlx::query("INSERT INTO users (id) VALUES (?)")
         .bind(1_i32)
         .execute(&mut *tx)
         .await?;
-    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+    let count: i64 = bk_sqlx::query_scalar("SELECT COUNT(*) FROM users")
         .fetch_one(&mut *tx)
         .await?;
     assert_eq!(count, 1);
     tx.rollback().await?;
-    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+    let count: i64 = bk_sqlx::query_scalar("SELECT COUNT(*) FROM users")
         .fetch_one(&mut conn)
         .await?;
     assert_eq!(count, 0);
@@ -467,12 +467,12 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     // begin .. commit
 
     let mut tx = conn.begin().await?;
-    sqlx::query("INSERT INTO users (id) VALUES (?)")
+    bk_sqlx::query("INSERT INTO users (id) VALUES (?)")
         .bind(1_i32)
         .execute(&mut *tx)
         .await?;
     tx.commit().await?;
-    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+    let count: i64 = bk_sqlx::query_scalar("SELECT COUNT(*) FROM users")
         .fetch_one(&mut conn)
         .await?;
     assert_eq!(count, 1);
@@ -482,17 +482,17 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     {
         let mut tx = conn.begin().await?;
 
-        sqlx::query("INSERT INTO users (id) VALUES (?)")
+        bk_sqlx::query("INSERT INTO users (id) VALUES (?)")
             .bind(2)
             .execute(&mut *tx)
             .await?;
-        let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+        let count: i64 = bk_sqlx::query_scalar("SELECT COUNT(*) FROM users")
             .fetch_one(&mut *tx)
             .await?;
         assert_eq!(count, 2);
         // tx is dropped
     }
-    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM users")
+    let count: i64 = bk_sqlx::query_scalar("SELECT COUNT(*) FROM users")
         .fetch_one(&mut conn)
         .await?;
     assert_eq!(count, 1);
@@ -500,7 +500,7 @@ async fn it_can_work_with_transactions() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_can_handle_split_packets() -> anyhow::Result<()> {
     // This will only take effect on new connections
     new::<MySql>()
@@ -519,12 +519,12 @@ CREATE TEMPORARY TABLE large_table (data LONGBLOB);
 
     let data = vec![0x41; 0xFF_FF_FF * 2];
 
-    sqlx::query("INSERT INTO large_table (data) VALUES (?)")
+    bk_sqlx::query("INSERT INTO large_table (data) VALUES (?)")
         .bind(&data)
         .execute(&mut conn)
         .await?;
 
-    let ret: Vec<u8> = sqlx::query_scalar("SELECT * FROM large_table")
+    let ret: Vec<u8> = bk_sqlx::query_scalar("SELECT * FROM large_table")
         .fetch_one(&mut conn)
         .await?;
 
@@ -533,7 +533,7 @@ CREATE TEMPORARY TABLE large_table (data LONGBLOB);
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn test_shrink_buffers() -> anyhow::Result<()> {
     // We don't really have a good way to test that `.shrink_buffers()` functions as expected
     // without exposing a lot of internals, but we can at least be sure it doesn't
@@ -545,7 +545,7 @@ async fn test_shrink_buffers() -> anyhow::Result<()> {
     let data = "This string should be 32 bytes!\n".repeat(1024);
     assert_eq!(data.len(), 32 * 1024);
 
-    let ret: String = sqlx::query_scalar("SELECT ?")
+    let ret: String = bk_sqlx::query_scalar("SELECT ?")
         .bind(&data)
         .fetch_one(&mut conn)
         .await?;
@@ -554,7 +554,7 @@ async fn test_shrink_buffers() -> anyhow::Result<()> {
 
     conn.shrink_buffers();
 
-    let ret: i64 = sqlx::query_scalar("SELECT ?")
+    let ret: i64 = bk_sqlx::query_scalar("SELECT ?")
         .bind(&12345678i64)
         .fetch_one(&mut conn)
         .await?;
@@ -564,9 +564,9 @@ async fn test_shrink_buffers() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn select_statement_count(conn: &mut MySqlConnection) -> Result<i64, sqlx::Error> {
+async fn select_statement_count(conn: &mut MySqlConnection) -> Result<i64, bk_sqlx::Error> {
     // Fails if performance schema does not exist
-    sqlx::query_scalar(
+    bk_sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
         FROM performance_schema.threads AS t

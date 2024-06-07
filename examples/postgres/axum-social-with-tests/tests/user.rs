@@ -1,6 +1,6 @@
-use sqlx::PgPool;
+use bk_sqlx::PgPool;
 
-use sqlx_example_postgres_axum_social::http;
+use bk_sqlx_example_postgres_axum_social::http;
 
 use axum::http::{Request, StatusCode};
 use tower::ServiceExt;
@@ -13,7 +13,7 @@ use serde_json::json;
 
 mod common;
 
-#[sqlx::test]
+#[bk_sqlx::test]
 async fn test_create_user(db: PgPool) {
     let mut app = http::app(db);
 

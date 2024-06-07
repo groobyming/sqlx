@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
 use crate::http::user::UserAuth;
-use sqlx::PgPool;
+use bk_sqlx::PgPool;
 use validator::Validate;
 
 use crate::http::Result;
@@ -51,7 +51,7 @@ async fn create_post_comment(
     req.validate()?;
     let user_id = req.auth.verify(&*db).await?;
 
-    let comment = sqlx::query_as!(
+    let comment = bk_sqlx::query_as!(
         Comment,
         // language=PostgreSQL
         r#"
@@ -81,7 +81,7 @@ async fn get_post_comments(
 ) -> Result<Json<Vec<Comment>>> {
     // Note: normally you'd want to put a `LIMIT` on this as well,
     // though that would also necessitate implementing pagination.
-    let comments = sqlx::query_as!(
+    let comments = bk_sqlx::query_as!(
         Comment,
         // language=PostgreSQL
         r#"

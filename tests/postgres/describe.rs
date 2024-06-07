@@ -1,7 +1,7 @@
-use sqlx::{postgres::Postgres, Column, Executor, TypeInfo};
-use sqlx_test::new;
+use bk_sqlx::{postgres::Postgres, Column, Executor, TypeInfo};
+use bk_sqlx_test::new;
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_simple() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -25,7 +25,7 @@ async fn it_describes_simple() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_expression() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -42,7 +42,7 @@ async fn it_describes_expression() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_enum() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -62,7 +62,7 @@ async fn it_describes_enum() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_record() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
@@ -74,7 +74,7 @@ async fn it_describes_record() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[sqlx_macros::test]
+#[bk_sqlx_macros::test]
 async fn it_describes_composite() -> anyhow::Result<()> {
     let mut conn = new::<Postgres>().await?;
 
