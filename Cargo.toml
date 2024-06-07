@@ -23,7 +23,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.7.4"
+version = "0.7.5"
 license = "MIT OR Apache-2.0"
 edition = "2021"
 repository = "https://github.com/launchbadge/bk-sqlx"
@@ -114,17 +114,17 @@ regexp = ["bk-sqlx-sqlite?/regexp"]
 
 [workspace.dependencies]
 # Core Crates
-bk-sqlx-core = { version = "=0.7.4", path = "bk-sqlx-core" }
-bk-sqlx-macros-core = { version = "=0.7.4", path = "bk-sqlx-macros-core" }
-bk-sqlx-macros = { version = "=0.7.4", path = "bk-sqlx-macros" }
+bk-sqlx-core = { version = "=0.7.5", path = "bk-sqlx-core" }
+bk-sqlx-macros-core = { version = "=0.7.5", path = "bk-sqlx-macros-core" }
+bk-sqlx-macros = { version = "=0.7.5", path = "bk-sqlx-macros" }
 
 # Driver crates
-bk-sqlx-mysql = { version = "=0.7.4", path = "bk-sqlx-mysql" }
-bk-sqlx-postgres = { version = "=0.7.4", path = "bk-sqlx-postgres" }
-bk-sqlx-sqlite = { version = "=0.7.4", path = "bk-sqlx-sqlite" }
+bk-sqlx-mysql = { version = "=0.7.5", path = "bk-sqlx-mysql" }
+bk-sqlx-postgres = { version = "=0.7.5", path = "bk-sqlx-postgres" }
+bk-sqlx-sqlite = { version = "=0.7.5", path = "bk-sqlx-sqlite" }
 
 # Facade crate (for reference from bk-sqlx-cli)
-bk-sqlx = { version = "=0.7.4", path = ".", default-features = false }
+bk-sqlx = { version = "=0.7.5", path = ".", default-features = false }
 
 # Common type integrations shared by multiple driver crates.
 # These are optional unless enabled in a workspace crate.

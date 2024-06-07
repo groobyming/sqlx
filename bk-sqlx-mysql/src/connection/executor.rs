@@ -108,7 +108,7 @@ impl MySqlConnection {
             let mut columns = Arc::new(Vec::new());
 
             let (mut column_names, format, mut needs_metadata) = if let Some(arguments) = arguments {
-                if persistent && self.cache_statement.is_enabled() {
+                /*if persistent && self.cache_statement.is_enabled() {
                     let (id, metadata) = self
                         .get_or_prepare_statement(sql)
                         .await?;
@@ -138,7 +138,10 @@ impl MySqlConnection {
                     self.stream.send_packet(StmtClose { statement: id }).await?;
 
                     (metadata.column_names, MySqlValueFormat::Binary, false)
-                }
+                }*/
+                self.stream.send_packet(Query(sql)).await?;
+
+                (Arc::default(), MySqlValueFormat::Text, true)
             } else {
                 // https://dev.mysql.com/doc/internals/en/com-query.html
                 self.stream.send_packet(Query(sql)).await?;
