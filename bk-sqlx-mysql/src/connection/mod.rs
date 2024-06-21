@@ -35,6 +35,8 @@ pub struct MySqlConnection {
     cache_statement: StatementCache<(u32, MySqlStatementMetadata)>,
 
     log_settings: LogSettings,
+
+    pub(crate) use_server_prep_stmts: bool,
 }
 
 impl Debug for MySqlConnection {

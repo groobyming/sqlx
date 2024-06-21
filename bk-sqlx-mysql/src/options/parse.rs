@@ -72,6 +72,10 @@ impl MySqlConnectOptions {
                     options = options.socket(&*value);
                 }
 
+                "useServerPrepStmts" => {
+                    options = options.use_server_prep_stmts(value.parse().map_err(Error::config)?);
+                }
+
                 _ => {}
             }
         }
