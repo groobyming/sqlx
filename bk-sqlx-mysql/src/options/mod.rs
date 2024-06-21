@@ -80,6 +80,7 @@ pub struct MySqlConnectOptions {
     pub(crate) no_engine_subsitution: bool,
     pub(crate) timezone: Option<String>,
     pub(crate) set_names: bool,
+    pub(crate) use_server_prep_stmts: bool,
 }
 
 impl Default for MySqlConnectOptions {
@@ -111,6 +112,7 @@ impl MySqlConnectOptions {
             no_engine_subsitution: true,
             timezone: Some(String::from("+00:00")),
             set_names: true,
+            use_server_prep_stmts: true,
         }
     }
 
@@ -396,6 +398,11 @@ impl MySqlConnectOptions {
     /// is supported by your MySQL or MariaDB server version and compatible with UTF-8.
     pub fn set_names(mut self, flag_val: bool) -> Self {
         self.set_names = flag_val;
+        self
+    }
+
+    pub fn use_server_prep_stmts(mut self, flag_val: bool) -> Self {
+        self.use_server_prep_stmts = flag_val;
         self
     }
 }
